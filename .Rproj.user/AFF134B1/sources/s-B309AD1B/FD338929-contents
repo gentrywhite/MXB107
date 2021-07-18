@@ -1,0 +1,24 @@
+Package: MXB107
+Title: Unit Package for MXB107
+Version: 1.0.0.2021
+Authors@R: 
+    person(given = "Gentry",
+           family = "White",
+           role = c("aut", "cre"),
+           email = "gentry.white@qut.edu.au",
+           comment = c(ORCID = "https://orcid.org/0000-0002-1170-9299"))
+Description: This is a unit specific package for MXB107 containing relevant datasets and loading required packages.
+License: MIT
+Depends: 
+    tidyverse,
+    knitr,
+    rmarkdown
+Suggests: 
+    testthat,
+    learnr,
+    ggtext
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+VignetteBuilder: knitr
