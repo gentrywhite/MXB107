@@ -1,6 +1,6 @@
 Package: MXB107
 Title: Unit Package for MXB107
-Version: 1.0.0.2021
+Version: 1.0.0.2022
 Authors@R: 
     person(given = "Gentry",
            family = "White",
@@ -12,13 +12,16 @@ License: MIT
 Depends: 
     tidyverse,
     knitr,
-    rmarkdown
+    rmarkdown,
+    pander,
+    ggforce,
+    kableExtra,
+    gridExtra
 Suggests: 
-    testthat,
     learnr,
     ggtext
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.1
 VignetteBuilder: knitr
