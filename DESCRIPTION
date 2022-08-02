@@ -9,7 +9,15 @@ Authors@R:
            comment = c(ORCID = "https://orcid.org/0000-0002-1170-9299"))
 Description: This is a unit specific package for MXB107 containing relevant datasets and loading required packages.
 License: MIT
-Depends: 
+Imports: 
+    tidyverse,
+    knitr,
+    rmarkdown,
+    pander,
+    ggforce,
+    kableExtra,
+    gridExtra
+Depends:
     tidyverse,
     knitr,
     rmarkdown,
