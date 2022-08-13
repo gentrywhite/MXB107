@@ -1,0 +1,76 @@
+---
+title: "Worksheet 01 answers template -- MXB107, QUT"
+subtitle: "Graphical Summaries of Data"
+author: "Student name"
+date: date()
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Before you knit...
+
+# 1. In rstudio menu pane, go to Tools, and then 
+# Global Options. In options that appear change
+# the default R version in use to "R 3.5.1 (64 Bit)" 
+# or the most recent version available. 
+
+# 2. If you haven't already, run the following 
+# commands to install the required packages 
+# (run without the # symbol):
+# install.packages(c("tidyverse","knitr"))
+
+# load any other required libraries here:
+
+  library(ggplot2)
+  library(dplyr)
+
+##  or
+
+  library(tidyverse)  ##  tidyverse automatically loads dplyr and ggplot2
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+## Worksheet exercises
+
+Here is where you type & your words will appear.
+
+```{r}
+# Here is where you type code & R will execute them. 
+```
+
+
+## Worksheet practical
+
+### Question 1
+
+If you wanted to compare the fuel economy for manual versus automatic transmissions what would you need to do, and which graphical summary would you use? Use ggplot to produce this graphical summary.
+
+```{r}
+# Answer here!
+
+```
+
+### Question 2
+
+If you wanted to explore the how engine displacement changed over time, what type of graph or chart would you use and why? Use ggplot to produce this graphical summary.
+
+```{r}
+# Answer here!
+```
+
+### Question 3
+
+Is the Pareto plot in the example above useful, what information does it give you and how (if at all) could it be modified to identify which manufacturers made the most fuel efficient cars? Use ggplot to produce this graphical summary.
+
+```{r}
+# Answer here!
+```
+

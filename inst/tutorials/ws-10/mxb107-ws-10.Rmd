@@ -1,0 +1,1026 @@
+---
+title: "MXB107 Worksheet 10 - Analysis of Variance"
+output:
+  learnr::tutorial:
+    theme: yeti
+    includes:
+    css: ["./css/QUT.css","./css/QUTtutorial.css"]
+    after_body: footer.html
+  progressive: true
+  allow_skip: true
+runtime: shiny_prerendered
+---
+
+```{r ws-setup, include=FALSE}
+  # if problems with knitting directory:
+  # set Knit Directory = Document Directory
+
+  # install libraries needed for worksheet
+knitr::opts_chunk$set(
+  fig.align = 'center',
+  collapse = TRUE,
+  comment = "#>"
+)
+
+  library(MXB107)
+  library(learnr)
+  library(gifski)
+  library(kableExtra)
+  library(pander)
+  library(shiny)
+
+```
+
+```{r, echo = FALSE}
+
+htmltools::includeHTML("header.html")
+htmltools::includeCSS("css/QUTtutorial.css")
+htmltools::includeCSS("css/QUT.css")
+
+```
+# The Analysis of Variance
+
+When considering hypothesis testing we looked at one-sample and two-sample cases, but is many instances,especially in experimental settings (e.g. lab experiments or clinical trials) we want to compare the effects of various _factors_ that have more than one or two possible _levels_.  In this case we need a more generalised approach to analysing results and testing hypotheses.
+The statistical technique used to analyse these data and test
+for the statistical significance of effects is called the analysis of
+variance (ANOVA).
+
+## Designing Experiments 
+
+An experiment is a trial that attempts to isolate the effects of factors
+of interest on specific outcomes while eliminating as much as possible
+extraneous effects on outcomes. Experiments are typically designed to
+focus on a few factors and include some degree of repetition and
+randomisation to make statistical inferences.
+
+:::{.boxed}
+
+An **experimental unit** is the object whose outcome or response is
+measured and is of interest in the process of the experiment. The
+outcome or response measured is called the dependent variable.
+
+A **factor** is an independent variable controlled and varied by the
+experimenter. Factors are measured and varied in terms of levels or
+discrete states rather than as continuous or discrete numerical
+measures.
+
+A **treatment** is a specific combination of factor levels.
+
+A **response** is the variable measured by the experimenter, typically a
+continuous numeric response.
+
+:::
+
+###  Analysis of Variance (ANOVA) Explained {#analysis-of-variance-anova-explained .unnumbered}
+
+We can explain the concept of Analysis of Variance (ANOVA) as a generalisation of a two-sample $t$-test.  Historically, ANOVA predates the maximum likelihood principle, and the Neyman-Pearson paradigm for hypothesis testing, and can be derived separately, but it is useful to think of it in terms of hypothesis testing for the purposes of inferencs.  
+
+:::{.boxed}
+**Paint Coverage: Deriving the Sum of Squares for ANOVA**\
+
+House paint is sold in containers labelling the coverage and drying time
+for a single coat of paint. If manufacturers' packaging claims that a
+four-litre can of their paint will cover the same area, how can we test if all three brands have the same coverage?  
+
+<button class = "solution">
+Solution
+</button>
+:::{.solution-panel}
+<p style="font-size:5px">
+<br>
+</p>
+
+We can think of this experiment
+as an example of a simple experiment testing a single factor (brand of
+paint) with multiple levels (brands of paint). 
+If we are testing a single factor with two levels (Brand A versus Brand B), measuring the response
+(coverage in $m^2$), results are analysed using a two-sample
+$t$-test. Assuming that $n_1=n_2=n$, we could write this out as a model
+for our responses as
+$$y_{ij} = \mu_i+\epsilon_{ij}, i = A,B\mbox{ and } j = 1,\ldots,n$$
+where $\mu_i$ is the mean for Brand A or Brand B, and $j$ is sample $j$
+of the sample for Brand A or Brand B.
+
+<br>
+Now suppose that we wanted to investigate three brands of paint? (Brand
+A, Brand B, and Brand C). The two-sample $t$-test is no longer a valid
+approach to analysing the data. Instead, can extend this statistical
+model for the experiment to analyse the data (assuming that each sample
+is of equal size, i.e. $n_1+n_2+n_3=n$
+$$y_{ij} = \mu_i+\epsilon_{ij}, i = A, B, C \mbox{ and } j = 1,\ldots,n$$
+
+Let's assume that the outcome of the experiment for replication $j$ of
+treatment $i$ that is the result for is $y_{ij}$, then the total outcome
+of the experiment is $$\mathbf{y} = (y_{11},y_{12},\ldots,y_{IJ})$$ where
+there are $I$ different treatments each replicated $J$ times, and
+$n = IJ$. We can describe the total variation in experimental outcomes
+as the **total sum of squares** (**SST**) is defined as
+$$SST = \sum_{i=1}^I\sum_{j=1}^J(y_{ij}-\bar{y}_{..})^2.$$ where
+$$\bar{y}_{..}=\frac{1}{IJ}\sum_{i=1}^I\sum_{j=1}^Jy_{ij}$$ is the grand
+mean, the overall average response over all treatments and repetitions.
+The total sum of squares can be decomposed into two parts. First the sum
+of the squares of the error **SSE** is the pooled variation *within*
+treatment group $i$ $$\begin{aligned}
+SSE &= (n_1-1)s_1^2+\cdots+(n_I-1)s_I^2\\
+&=\sum_{i=1}^I \sum_{j=1}^J (y_{ij}-\bar{y}_i)^2\end{aligned}$$ where
+$$\bar{y}_{i}=\frac{1}{J}\sum_{j=1}^Jy_{ij}$$ or the mean for treatment
+$i$. Second, the sum of the squares of the treatments **SSTR** is
+$$SSTR = \sum_{i=1}^IJ(\bar{y}_{i}-\bar{y}_{..})^2$$ resulting in
+$$SST = SSTR + SSE$$
+
+We can show that we can decompose the total sum of squares into the sum of the
+squares of the treatments and the sum of the squares of the error.
+
+Each source of variation is computed as a sum of squares, and can be
+divided by their degrees of freedom, as an estimate of their
+contribution to the total variance. These results are presented in an
+ANOVA table.
+
+  Source       degrees of freedom   Sum of Squares     Mean Squares        $F$
+  ----------- -------------------- ---------------- ------------------- ----------
+  Treatment           I-1                SSTR        MSTR = SSTR/(I-1)   MSTR/MSE
+  Error               n-I                SSE          MSE = SSE/(n-I)   
+  Total               n-1                SST                            
+
+Note that $n = IJ$ and the mean squares are just the sum of squares
+divided by their degrees of freedom. The statistic $F$ is the ratio of
+the MSTR and the MSE; or the ratio of the between treatment variation
+and the within treatment variation.
+:::
+
+:::
+## ANOVA Inference
+
+We assume that the observations $y_{ij}$ are distributed following a Gaussian distribution with a common variance $\sigma^2$, but not necessarily the
+same mean.  Under these assumeotions, the statistic $F$, the ratio of the mean squares of ther treatment and the mean square of the error will follow an $F$-distribution. 
+
+The $F$ distribution is
+a continuous probability distribution that describes the sampling
+distribution of the ratio of two sample variances. The $F$ distribution has
+two parameters, which are the degrees of freedom of the numerator and
+the degrees of freedom of the denominator. 
+$$
+\frac{s_1^2}{s^2_2}\sim F_{\nu_1,\nu_2}
+$$
+where if
+$$
+s_1^2=\frac{1}{n_1-1}\sum_{i=1}^{n_1}(x_i-\bar{x})^2\quad\mbox{and}
+\quad s^2_2=\frac{1}{n_2-1}\sum_{j=1}^{n_2}(y_j-\bar{y})^2
+$$
+then 
+$$
+\nu_1 = n_1-1\quad \mbox{and}\quad \nu_2=n_2-1.
+$$
+
+We can think about this in
+terms of a hypothesis test; if you wanted to test whether or not one of
+your treatments produced a different outcome than the others, then you
+would use the hypotheses
+$$
+H_0: \mu_1=\mu_2=\cdots=\mu_I\qquad\mbox{and}\qquad H_A: \mbox{ at least one treatment mean is different}.
+$$
+Under these hypotheses, the null assumption means that
+$$
+SSTR\approx SSE
+$$
+i.e. that the variance between treatments was
+approximately equal to the variance within treatments, or that all
+treatment means are the same. So, in this case, you would reject the
+null hypothesis if MSTR was larger than MSE, or that basically, the
+treatment accounted for more of the total variance than the error. This
+decision translates to rejecting for large values of $F$, so we can
+state that our rejection rule would be: $$F>F_{\mbox{critical}}$$ and
+just as in previous cases we can choose our critical value based on a
+Type I Error rate so that
+$$
+F_{\mbox{critical}} = F_{\nu_1,\nu_2,\alpha}
+$$
+where
+$$
+Pr(F<F_{\mbox{critical}})= 1-\alpha.
+$$ 
+Finding the critical value for
+$F$ can be easily done using `R` or other statistical software. In
+practice, most statistical software will produce an ANOVA table with $F$
+statistics computed and some indication of the results of testing.
+
+:::{.boxed}
+**Example:**\
+
+A study in Kirchhoefer (1979) reviewed the results of an experiment
+evaluating a semi-automated method for measuring chlorpheniramine
+maleate in tablets. The experimenter allocated ten samples to each of
+seven labs, and the results were analysed to determine if there were
+differences between the labs. The results in tabular form are:
+
+:::{.table-narrow}
+```{r, echo = FALSE}
+y <- c(4.13,4.07,4.04,4.07,4.05,4.04,4.02,4.06,4.10,4.04,
+       3.86,3.85,4.08,4.11,4.08,4.01,4.02,4.04,3.97,3.95,
+       4.00,4.02,4.01,4.01,4.04,3.99,4.03,3.97,3.98,3.98,
+       3.88,3.88,3.91,3.95,3.92,3.97,3.92,3.90,3.97,3.90,
+       4.02,3.95,4.02,3.89,3.91,4.01,3.89,3.89,3.99,4.00,
+       4.02,3.86,3.96,3.97,4.00,3.82,3.98,3.99,4.02,3.93,
+       4.00,4.02,4.03,4.04,4.10,3.81,3.91,3.96,4.05,4.06)
+labs <- c(rep("Lab 1", 10),rep("Lab 2", 10), rep("Lab 3",10), rep("Lab 4",10),
+          rep("Lab 5",10), rep("Lab 6",10),rep("Lab 7",10))
+
+df <- tibble(obs = rep(1:10,7), y = y, lab = labs)%>%
+  pivot_wider(names_from = lab, values_from = y)%>%
+  select(-obs)
+
+pander(df, digits = 3)
+
+```                  
+:::
+
+<button class="solution">
+Solution
+</button>
+:::{.solution-panel}
+<p style="font-size:5px">
+<br>
+</p>
+
+If we want to test the hypotheses
+$$
+H_0: \mbox{There is no difference between labs}\quad\mbox{and}\quad H_A: \mbox{At least one lab is different}
+$$
+Then we can use the $F$ statistic and perform a $F$-test. The degrees of
+freedom for the numerator and denominator can be taken from the table as
+6 and 63 respectively use `R` to determine that 
+$$
+F_{\mbox{critical}}=`r qf(0.95,6,63)%>%round(2)`
+$$ 
+for $\alpha = 0.05$. 
+
+Unfortunately, further analysis requires using `R` rather than the tedious hand calculations involved. 
+
+```{r ex1}
+y <- c(4.13,4.07,4.04,4.07,4.05,4.04,4.02,4.06,4.10,4.04,
+       3.86,3.85,4.08,4.11,4.08,4.01,4.02,4.04,3.97,3.95,
+       4.00,4.02,4.01,4.01,4.04,3.99,4.03,3.97,3.98,3.98,
+       3.88,3.88,3.91,3.95,3.92,3.97,3.92,3.90,3.97,3.90,
+       4.02,3.95,4.02,3.89,3.91,4.01,3.89,3.89,3.99,4.00,
+       4.02,3.86,3.96,3.97,4.00,3.82,3.98,3.99,4.02,3.93,
+       4.00,4.02,4.03,4.04,4.10,3.81,3.91,3.96,4.05,4.06)
+labs <- c(rep("Lab 1", 10),rep("Lab 2", 10), rep("Lab 3",10), rep("Lab 4",10),
+          rep("Lab 5",10), rep("Lab 6",10),rep("Lab 7",10))
+
+df <- tibble(y = y, lab = labs)
+
+model <- lm(y~lab, data = df)
+
+panderOptions('missing',"")
+model%>%anova()%>%pander()
+
+```
+```{r ex1a, echo=FALSE}
+
+model_res <- model%>%anova()
+
+MS <- model_res%>%pull("Mean Sq")%>%round(6)
+F.test <- model_res%>%pull("F value")%>%round(2)
+
+```
+
+\
+<br>
+We can see from the results that the _MSE_=`r MS[2]` and _MSTR_=`r MS[1]` resulting in _F_=`r F.test[1]`, since the critical value of _F_ is `r qf(0.95,6,63)%>%round(2)`, we can reject the null hypothesis and assume that the measuring process in at least one lab is different than the others.
+
+This example describes a single factor experiment
+where treatments are assigned to individuals completely at random or a
+fully randomised trial. The results from rejecting the null hypothesis
+tell us that at least one of the treatments results in different
+outcomes compared to the rest, but beyond that, it doesn't tell us much,
+in fact, we need some more sophisticated tools.
+
+:::
+:::
+
+### The Problem of Multiple Comparisons  {#the-problem-of-multiple-comparisons .unnumbered}
+
+THe $F$-test for ANOVA is robust, and relatively straightforward; it is based on comparing the variance _within_ groups (or treatments) and the variance _between_ groups (or treatments).  If we see that the variance between groups is much greater than the variance within groups we reject $H_0$ the null hypothesis that all groups or treatments have the same effect.  Rejecting the null hypothesis however simply tells us that _at least one_ of the treatments is different; not which one. 
+
+Instinctively we might suggest that a way of testing to see which
+treatment is different would be to perform multiple two-sample $t$-test
+like we learned previously.
+
+:::{.boxed}
+In the example from Kirchhoefer (1979) there are seven labs, and to test all the possible
+pairwise comparisons we would have to perform $${7\choose 2} = 21$$
+two-sample $t$-tests. Each of these tests has a Type I Error Rate of
+$\alpha$, thus in performing 21 tests the actual Type I Error Rate is
+the probability that you make at least one Type I error or
+$$1-Pr(\mbox{you make no Type I errors}=1-(1-\alpha)^{21}.$$ We can
+calculate this for $\alpha = 0.05$ as $$1-(1-0.05)^{21}=0.659$$ This
+result means that our testing procedure is far less reliable than we
+thought, and our inferences could be very wrong, meaning that we have a
+very high probability of making a mistake in deciding that two treatment
+means differ.
+:::
+
+###  Testing the Equality of the Treatment Means {#testing-the-equality-of-the-treatment-means .unnumbered}
+
+There are a number of different approaches to addressing this problem of an inflated Type I error rate when testing the difference between multiple treatment means; one is Tukey's
+Honest Significant Difference (HSD) based on the sampling distribution
+of
+$$
+q_{I,I(J-1)}\max_{i_1,i_2}\frac{|(\bar{y}_{i_1}-\mu_{i_1})-(\bar{y}_{i_2}-\mu_{i_2})|}{s_p/\sqrt{J}}
+$$
+or **Tukey's Studentised Range**, where $i_1$ and $i_2$ refer to any
+arbitrary pairwise comparison of treatments. Using this sampling
+distribution, we can construct a confidence interval to perform the
+pairwise test of
+$$
+H_0: \mu_{i_1}=\mu_{i_2}\qquad\mbox{and}\qquad H_A: \mu_{i_1}\neq\mu_{i_2}.
+$$
+For a Type I Error Rate of $\alpha$ we can reject $H_0$ if
+$$
+|\bar{y}_{i_1}-\bar{y}_{i_2}|>q_{I,I(J-1),\alpha}\frac{s_p}{\sqrt{J}}
+$$
+Finding values of $q_{I,I(I-J),\alpha}$ requires either special software (e.g. `R`)
+or a set of tables.
+
+:::{.boxed}
+**Example:**\
+
+In the example from Kirchhoefer (1979) the results of the hypothesis test indicates that at least one of labs produces different measurements than the rest.  Use Tukey's Honest Significant Difference to identify _which_ labs differ from the others. 
+
+<button class = "solution">
+Solution
+</button>
+:::{.solution-panel}
+<p style="font-size:5px">
+<br>
+</p>
+
+Continuing with the example of lab measurements, we can list the labs in decreasing order
+of their mean measurements
+
+   Lab   Mean
+  ----- -------
+    1    4.062
+    3    4.003
+    7    3.998
+    2    3.997
+    5    3.957
+    6    3.995
+    4    3.920
+
+For a Type I Error Rate of $\alpha = 0.05$ we can find
+$q_{7,63,\alpha} = 4.31$ in `R`  `qtukey(0.95,7,63)`  $s_p$ is the square root of the mean squared
+error (MSE) resulting in $s_p = 0.06$. According to Tukey's method we
+would reject the hypothesis that two means were the same if
+$$|\bar{y}_{i_1}-\bar{y}_{i_2}|>0.082$$ based on this, we conclude that
+mean of the measurements produced by Lab 1 differ from those of Lab 4,
+5, and 6.
+
+Note that if we had performed a regular $t$ test at the same Type I
+Error Rate, the rejection rule would have been
+$$|\bar{y}_{i_1}-\bar{y}_{i_2}|>0.053$$ and we would have concluded that
+Lab 1 produced measurements that differed from every other lab.
+
+```{r ex2}
+y <- c(4.13,4.07,4.04,4.07,4.05,4.04,4.02,4.06,4.10,4.04,
+       3.86,3.85,4.08,4.11,4.08,4.01,4.02,4.04,3.97,3.95,
+       4.00,4.02,4.01,4.01,4.04,3.99,4.03,3.97,3.98,3.98,
+       3.88,3.88,3.91,3.95,3.92,3.97,3.92,3.90,3.97,3.90,
+       4.02,3.95,4.02,3.89,3.91,4.01,3.89,3.89,3.99,4.00,
+       4.02,3.86,3.96,3.97,4.00,3.82,3.98,3.99,4.02,3.93,
+       4.00,4.02,4.03,4.04,4.10,3.81,3.91,3.96,4.05,4.06)
+labs <- c(rep("Lab 1", 10),rep("Lab 2", 10), rep("Lab 3",10), rep("Lab 4",10),
+          rep("Lab 5",10), rep("Lab 6",10),rep("Lab 7",10))
+
+df <- tibble(y = y, lab = labs)
+
+model <- lm(y~lab, data = df)
+
+panderOptions('missing',"")
+model%>%anova()%>%pander()
+
+model_res <- model%>%anova()
+panderOptions('digits', 3)
+(model%>%aov()%>%TukeyHSD())$lab%>%round(3)%>%pander()
+
+```
+Tukey's method can be used to construct confidence intervals for the
+difference between two treatment means (as shown). Statistical software
+(including `R`) produce special tables of pairwise comparisons for
+treatment means that illustrate both the ranking of the treatment means
+as well as the results of hypothesis testing to determine if differences
+are significant.
+
+Note that looking at the table and reading the $p$-values we can see that at the Type I error rate of $\alpha=0.05$  labs 4,5, and 6 are significantly different than lab 1 and that labs 4 and 3 are significantly different.
+:::
+
+:::
+
+
+## Randomised Block Designs: Two-Way Classification
+
+The single factor completely randomised designs previously described are
+extensions of two-sample $t$-tests using $F$-tests for inference and
+adjusting the Type I Error Rates to account for multiple comparisons.
+This model assumes that the only sources for observed variation in
+responses are either the treatment effects or random effects or
+experimental errors. Sometimes however it is obvious to the designer of
+an experiment that not all subjects are homogeneous, so the idea of
+allocating treatments completely at random might induce bias or
+otherwise invalidate our results. Often this heterogeneity is not able
+to be controlled by the experimenter, and is not of primary interest,
+but must be controlled. Controlling for this source of variation is done
+by using a **randomised block design**, which is a direct extension of
+the *matched pairs* or *paired difference* designs shown in Week 9.
+
+###  Blocking {#blocking .unnumbered}
+
+In a randomised experimental design, if there are $I$ treatments of
+interest, the experimenter chooses $J$ blocks ($J>I$) each with $I$
+subjects, one for each treatment. This scheme is to isolate the block to
+block variability that might obscure the treatment effects.
+
+A researcher wants to know the average yield for three different species
+of fruit trees, but there is variation in yield depending on the field
+that the trees are planted in. The researcher is not interested in the
+variation due to the fields, so the researcher picks five different
+fields and divides each into three plots, and plants each of the three
+species in one of the plots.
+
+In this example, two factors account for variation in the responses: the
+treatments and the blocks. Thus our model is now:
+$$y_{ij} = \alpha_i+\beta_j+\epsilon_{ij}$$ where $\alpha_i$ is the mean
+effect for treatment $i$ and $\beta_j$ is the mean effect for block $j$.
+We use ANOVA to explore the variation of both of these factors and
+random experimental error.
+
+:::{.boxed}
+
+###  The ANOVA Table for Randomised Block Designs {#the-anova-table-for-randomised-block-designs .unnumbered}
+
+To partition the variance let $y_{ij}$ be the response for treatment $i$
+in block $j$. Then the total variation for $n=IJ$ responses can be
+partitioned into three parts: $$SST = SSB+SSTR+SSE$$ where SSB is the
+sum of the squares of the blocks, which measures the variability between
+blocks. $$SSB = I\sum_{j=1}^J(\bar{y}_{j}-\bar{y}_{..})^2$$ where
+$$\bar{y}_j = \frac{1}{I}\sum_{i=1}^Iy_{ij}.$$ and
+$$SSE = \sum_{i=1}^I\sum_{j = 1}^J(y_{ij}-\bar{y}_j-\bar{y}_I-\bar{y}_{..})^2.$$
+In this case the general form of the ANOVA table is
+
+  Source       Sum of Squares   degrees of freedom          MS             F
+  ----------- ---------------- -------------------- ------------------ ----------
+  Block             SSB                J-1              SSB/(J-1)       MSB/MSE
+  Treatment         SSTR              (I-1)             SSTR/(I-1)      MSTR/MSE
+  Error             SSE             (I-1)(J-1)       SSE/((I-1)(J-1))  
+  Total             SST                n-1                             
+
+Note that the $F$ statistics can be used as in the single-factor design
+to the test the hypotheses:
+$$
+H_0:\mbox{All treatment means are the same.}\: \mbox{ vs }\: H_A:\mbox{At least one treatment mean is different.}
+$$
+or
+$$
+H_0:\mbox{All block means are the same}\:\mbox{ vs }\: H_A:\mbox{At least one block mean is different}.
+$$
+Also, we can use Tukey's Honest Significant Differences (HSD) to rank
+and evaluate the differences between means for both treatments and
+blocks.
+
+:::
+
+:::{.boxed}
+
+```{r echo=FALSE}
+df <- tibble('Usage Level' = c("Low", "Medium","High"),A = c(27,68,308), B = c(24,76,326), C = c(31,65,312), D = c(23,67,300))
+
+df_l <- pivot_longer(df,cols = c("A","B","C","D"),names_to = "Company")
+model <- lm(value~.,data = df_l)
+
+
+```
+
+**Example:**\
+
+A researcher is interested in the differences in price for different
+mobile phone providers. They want to compare prices from 4 different
+companies (A,B,C,D), but to account for differences between plans they
+create blocks based on different plan types: low, medium, and high
+usage. The resulting data are:
+
+```{r,echo=FALSE,fig.align='center'}
+pander(df)
+```
+
+
+<button class="solution">
+Solution
+</button>
+:::{.solution-panel}
+<p style = "font-size:5px">
+<br>
+</p>
+
+The results for the ANOVA without blocking on the usage level are:
+
+```{r echo=FALSE}
+model_nb <- lm(value~Company,df_l)
+panderOptions('missing', "")
+panderOptions('round', 3)
+panderOptions('plain.ascii', 'TRUE')
+model_nb%>%aov()%>%pander()
+```
+
+<br>
+The results for the ANOVA blocking by usage lebel are:
+
+```{r echo=FALSE}
+panderOptions('missing', "")
+panderOptions('round', 3)
+panderOptions('plain.ascii', 'TRUE')
+model%>%aov()%>%pander()
+
+
+```
+Notice that when we block on the usage level, the $p$-value for `Company` decreases, though it is still _not_ statistically significant at the Type I error rate of $\alpha = 0.05$, it is a substantial change. 
+  <!-- Source          Df      Sum Sq    Mean Sq   F value   Pr($>$F) -->
+  <!-- ------------- ---- ----------- ---------- --------- ---------- -->
+  <!-- Usage Level      2   189335.17   94667.58   2351.99     0.0000 -->
+  <!-- Company          3      222.25      74.08      1.84     0.2404 -->
+  <!-- Residuals        6      241.50      40.25        -->
+  
+
+
+**Without Blocking**\
+
+```{r, warning=FALSE,message=FALSE}
+df <- tibble(`Usage_Level` = c("Low", "Medium","High"),A = c(27,68,308), B = c(24,76,326), C = c(31,65,312), D = c(23,67,300))
+
+df_l <- pivot_longer(df,cols = c("A","B","C","D"),names_to = "Company")
+model <- lm(value~.,data = df_l)
+model_nb <- lm(value~Company, df_l)
+
+panderOptions('missing', "")
+panderOptions('round', 3)
+panderOptions('plain.ascii', 'TRUE')
+model_nb%>%aov()%>%pander()
+```
+<br>
+And the results for Tukey's HSD for Company without blocking by usage level are:
+```{r, warning=FALSE,message=FALSE}
+model_nb%>%aov()%>%TukeyHSD(which = "Company")%>%pander()
+
+```
+<br>
+
+**With Blocking**\
+
+Now we add blocking on `Usage_Level`
+```{r, warning=FALSE,message=FALSE}
+panderOptions('missing', "")
+panderOptions('round', 3)
+panderOptions('plain.ascii', 'TRUE')
+model%>%aov()%>%pander()
+```
+<br>
+And the results for Tukey's HSD for Company with blocking by usage level are:
+```{r, warning=FALSE,message=FALSE}
+model%>%aov()%>%TukeyHSD(which = "Company")%>%pander()
+
+```
+<br>
+And the results for Tukey's HSD for usage level with blocking by usage level are:
+```{r, warning=FALSE,message=FALSE}
+model%>%aov()%>%TukeyHSD(which = "Usage_Level")%>%pander()
+```
+
+
+Note that there appear to be significant differences between costs for
+various usage levels, but not between companies. So while it is evident
+that there is a difference between the costs for usage levels (and this
+is not of interest), it appears that even when accounting for usage
+level, there are still no significant differences in costs between
+service providers.
+:::
+:::
+
+## Two-Factor Experiments
+
+```{r echo=FALSE}
+df <- tibble(Supervisor = c(1,1,1,2,2,2)%>%as.factor(), 
+             Day = c(571,610,625,480,516,465), 
+             Swing = c(480,474,540,625,600,581),
+             Night = c(470,430,450,630,680,661))
+df_l <- pivot_longer(df,cols = c(Day,Swing,Night),names_to = "Shift")
+model <- lm(value~Supervisor+Shift+Supervisor:Shift,df_l)
+
+```
+
+
+A randomised block design provides some structure as to allocating
+treatments to account for between block variation to control for
+extraneous sources of variation that are not of interests. But in many
+cases a researcher may want to explore the effects of two different
+factors (both of interest) as well as their interaction (definitely of
+interest). Experiments of this kind are called Two-Factorial
+Experiments.
+
+Medical researchers often want to test the effects of various drugs, but
+in many cases, patients may be taking more than one medication. In this
+case, researchers need to test the effects of multiple medications and
+their interactions on patient outcomes using the model
+$$
+y_{ijk} = \alpha_i+\beta_j+(\alpha\beta)_{ij}+\epsilon_{ijk}
+$$ 
+where
+$\alpha_i$ is the mean effect for drug 1, $\beta_j$ is the mean effect
+of drug 2, and $(\alpha\beta)_{ij}$ is the mean effect of the
+interaction between drug 1 and drug 2.
+
+:::{.boxed}
+### ANOVA for Two-Factor Experiments {#anova-for-two-factor-experiments .unnumbered}
+
+In a two factor experiment, factor A may have $I$ levels, factor B may
+have $J$ levels and each of these replicated $K$ times, making $y_{ijk}$
+observation $k$ of the combination of treatments $i$ and $j$. We then
+can partition the total sum of squares into four parts
+$$
+SST  = SSA + SSB + SSAB + SSE
+$$ 
+where:
+
+-   SSA measures the variation among the means of factor A.
+
+-   SSB measures the variation among the means of factor B.
+
+-   SSAB measures the variation among the different combinations of
+    levels for A and B.
+
+-   SSE measures the variation among the observations within each
+    combination of levels for A and B.
+
+Given that there are $I$ levels for factor A, $J$ levels for factor B,
+and $K$ replicates of each combination, the total number of observations
+is $n = IJK$.
+
+Setting aside the exact formulae for computing the sums of squares, the
+resulting ANOVA table for analysis is
+
+  Source    Degrees of Freedom   Sum of Squares     Mean Squares         F
+  -------- -------------------- ---------------- ------------------- ----------
+  A                I-1                SSA             SSA/(I-1)       MSA/MSE
+  B                J-1                SSB             SSB/(J-1)       MSB/MSE
+  AB            (I-1)(J-1)            SSAB        SSAB/((I-1)(J-1))   MSAB/MSE
+  Error          IJ(K-1)              SSE            SSE/IJ(K-1)     
+  Total           IJK-1               SST                            
+
+Much of the analyses and inference carries over from the previous
+examples but extended to the two-factor case. The hypotheses of interest
+then become.
+$$
+H_0: \mbox{Factor A treatment means are equal}\:\mbox{ vs }\: H_A: \mbox{At least one treatment mean is different}
+$$
+$$
+H_0: \mbox{Factor B treatment means are equal}\:\mbox{ vs }\: H_A: \mbox{At least one treatment mean is different}
+$$
+$$
+H_0: \mbox{There is no interaction between A and B}\quad\mbox{vs}\quad H_A: \mbox{Factors A and B interact}
+$$
+:::
+
+We can test these hypotheses using a specified Type I Error Rate
+(typically $\alpha = 0.05$) and identifying the appropriate rejection
+region for their $F$ statistics. Also, Tukey's HSD can be used to assess
+the individual treatment differences.
+
+
+:::{.boxed}
+**Example:**\
+
+
+The manager of a manufacturing plant knows that the output of a
+production line depends on two factors:
+
+-   Which of two supervisors is in charge of the line
+
+-   Which of three shifts (day, night, or swing) is working
+
+The following data are collected
+echo
+<div style="padding: 0 50px">
+```{r,echo=FALSE}
+pander(df)
+```
+</div>
+
+<button class = "solution">
+Solution
+</button>
+:::{.solution-panel}
+<p style="font-size:5px">
+<br>
+</p>
+
+The results for the ANOVA analysis in tabular form are:
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+panderOptions('missing', "")
+panderOptions('round', 4)
+panderOptions('plain.ascii', 'TRUE')
+model%>%aov()%>%pander()
+```
+
+These results indicate that there doesn't appear to be a significant
+difference between shifts, but that there is a significant difference
+between supervisors. This can be explored by looking at the differences
+in the mean outcome for each supervisors for each shift using Tukey's
+HSD:
+
+```{r echo=FALSE,warning = FALSE}
+tukey_model <- (model%>%aov()%>%TukeyHSD(which = 3,ordered = TRUE))$'Supervisor:Shift'
+#emphasize.strong.rows(which(tukey_model[,4]<0.05))
+emphasize.strong.rows(c(5,8,10))
+pander(tukey_model,plain.ascii = FALSE)
+
+```
+
+These results indicate that there is a significant difference between
+supervisors for each shift, but that while supervisor 2 appears to
+perform better over all (and on the swing and night shifts), supervisor
+1 performs better on the day shift.
+
+```{r, warning=FALSE,message=FALSE}
+df <- tibble(Supervisor = c(1,1,1,2,2,2)%>%as.factor(), 
+             Day = c(571,610,625,480,516,465), 
+             Swing = c(480,474,540,625,600,581),
+             Night = c(470,430,450,630,680,661))
+df_l <- pivot_longer(df,cols = c(Day,Swing,Night),names_to = "Shift")
+model <- lm(value~Supervisor+Shift+Supervisor:Shift,df_l)
+
+pander(df)
+
+```
+
+```{r, warning=FALSE,message=FALSE}
+panderOptions('missing', "")
+panderOptions('round', 4)
+panderOptions('plain.ascii', 'TRUE')
+model%>%aov()%>%pander()
+```
+
+```{r, warning=FALSE,message=FALSE}
+tukey_model <- (model%>%aov()%>%TukeyHSD(which = 3,ordered = TRUE))$'Supervisor:Shift'
+emphasize.strong.rows(c(5,8,10))
+pander(tukey_model,plain.ascii = FALSE)
+
+```
+:::
+:::
+
+## Worksheet Practical Question 1
+
+The variation of the strength of (coloring powder) of a dyestuff from one manufacturing batch to another was studied (Davies, 1960). Strength was measured by dyeing a square of cloth with a standard concentration of dyestuff and visually comparing the result with a standard. 
+
+\
+The result was numerically scored as the percentage strength of the dyestuff. Large samples were taken from six batches and from each batch six sub-samples were taken. The 36 subsamples were submitted to the laboratory in a random order for testing as described above. Analyse the data using a one-way ANOVA 
+
+<!-- <center> -->
+<!-- ```{r,echo = FALSE, , message=FALSE, warning=FALSE} -->
+<!-- dye <- read_csv("https://www.dropbox.com/s/wpg5t081v5nym9z/dye.csv?dl=1") -->
+<!-- dye%>% -->
+<!--   kable(align = "c","pipe",digits = 2) -->
+<!-- ``` -->
+<!-- </center> -->
+
+
+```{r pq1, exercise = TRUE, message=FALSE, warning=FALSE}
+##  Enter Data
+
+dye <- read_csv("https://www.dropbox.com/s/wpg5t081v5nym9z/dye.csv?dl=1")
+dye <- pivot_longer(dye,cols = names(dye))
+names(dye) <- c("Batch","Strength")
+
+```
+```{r pq1-hint-1}
+model<-lm(Strength~Batch, data = dye)
+
+  anova(model)%>%
+  kable(digits = 3, "html",table.attr = "style='width:80%;'",align = "c")%>%
+  kable_styling(position = "center")
+
+```
+```{r pq1-hint-2}
+model%>%
+  aov()%>%
+  TukeyHSD()%>%
+  extract2(1)%>%
+  kable(digits =  3,caption="Tukey Confidence Intervals for Difference in Treatment Means",booktabs = TRUE,col.names = c("Difference of Means","LCL","UCL",expression(p-value)),"html",table.attr = "style='width:80%;'",align = "c")%>%
+  kable_styling(position = "center")
+
+```
+
+## Worksheet Practical Question 2
+
+The concentration (in nanograms per millilitre) of plasma epinephrinewere measured for ten dogs under isofluorane, halothane, cyclopropane anesthesia (Perry, et. al. 1974).
+
+<!-- ```{r, echo = FALSE, message=FALSE, warning=FALSE} -->
+<!-- dog<-read_csv("https://www.dropbox.com/s/fjp07jvd48si51z/dog.csv?dl=1") -->
+
+<!-- dog%>% -->
+<!--   kable(col.names = c("Anethesia", names(dog)[-1]), align = "c") -->
+
+<!-- ``` -->
+
+Analyse these data using an one-factor ANOVA on the anesthesia
+
+```{r pq2, exercise = TRUE, message=FALSE, warning=FALSE}
+dog <- read_csv("https://www.dropbox.com/s/fjp07jvd48si51z/dog.csv?dl=1")
+dog <- dog%>%
+        pivot_longer(cols = names(dog[-1]))
+names(dog) <- c("anesthesia", "dog", "epinephrine")
+
+```
+
+
+```{r pq2-hint-1}
+model<-lm(epinephrine~anesthesia, data = dog)
+
+  anova(model)%>%
+  kable(digits = 3, "html",table.attr = "style='width:80%;'",align = "c")%>%
+  kable_styling(position = "center")
+
+```
+Now, perform the same ANOVA, but block on the variable "dog"
+```{r pq2-hint-2}
+model<-lm(epinephrine~anesthesia+dog, data = dog)
+
+  anova(model)%>%
+  kable(digits = 3, "html",table.attr = "style='width:80%;'",align = "c")%>%
+  kable_styling(position = "center")
+
+```
+```{r pq2-hint-3}
+model%>%
+  aov()%>%
+  TukeyHSD()%>%
+  extract2(1)%>%
+  kable(digits =  3,caption="Tukey Confidence Intervals for Difference in Treatment Means",booktabs = TRUE,col.names = c("Difference of Means","LCL","UCL",expression(p-value)),"html",table.attr = "style='width:80%;'",align = "c")%>%
+  kable_styling(position = "center")
+```
+Comments? Thought?
+
+## Worksheet Practical Question 3
+The following data describe the outcome of an experiment where the survival time of animals in hours is measured for anmials receiving one of three poisons and one of four treatments (Box and Cox 1964). 
+
+Analyse these data using a one-factor ANOVA for Poison, a two-factor ANOVA for Poison and Treatment (without interaction) and a two-factor ANOVA with interaction between Treatment and Poison
+
+
+<!-- ```{r, echo = FALSE, message=FALSE, warning=FALSE} -->
+<!-- poison <- read_csv("https://www.dropbox.com/s/5bk2sdrvddndl10/poison.csv?dl=1") -->
+
+<!-- poison%>% -->
+<!--   kable() -->
+
+<!-- ``` -->
+
+
+```{r pq3, exercise = TRUE, message=FALSE, warning=FALSE}
+poison <- read_csv("https://www.dropbox.com/s/5bk2sdrvddndl10/poison.csv?dl=1")
+
+```
+
+
+```{r pq3-hint-1}
+model <- lm(Survtime ~ Poison, poison)
+
+anova(model)%>%
+    kable(digits = 3, "html",table.attr = "style='width:80%;'",align = "c")%>%
+    kable_styling(position = "center")
+
+```
+
+```{r pq3-hint-2}
+model <- lm(Survtime ~ Poison + Treatment, poison)
+
+anova(model)%>%
+    kable(digits = 3, "html",table.attr = "style='width:80%;'",align = "c")%>%
+    kable_styling(position = "center")
+
+```
+
+```{r pq3-hint-3}
+poison <- read_csv("https://www.dropbox.com/s/5bk2sdrvddndl10/poison.csv?dl=1")
+
+model <- lm(Survtime ~ Poison + Treatment + Poison:Treatment , poison)
+
+anova(model)%>%
+    kable(digits = 3, "html",table.attr = "style='width:80%;'",align = "c")%>%
+    kable_styling(position = "center")
+
+```
+```{r pq3-hint-4}
+model%>%
+  aov()%>%
+  TukeyHSD()%>%
+  extract2(1)%>%
+  kable(digits =  3,caption="Tukey Confidence Intervals for Difference in Treatment Means",booktabs = TRUE,col.names = c("Difference of Means","LCL","UCL",expression(p-value)),"html",table.attr = "style='width:80%;'",align = "c")%>%
+  kable_styling(position = "center")
+```
+```{r pq3-hint-5}
+
+model%>%
+  aov()%>%
+  TukeyHSD()%>%
+  extract2(2)%>%
+  kable(digits =  3,caption="Tukey Confidence Intervals for Difference in Poison Means",booktabs = TRUE,col.names = c("Difference of Means","LCL","UCL",expression(p-value)),"html",table.attr = "style='width:80%;'",align = "c")%>%
+  kable_styling(position = "center")
+
+```
+
+##    Additional Questions for Practice
+
+1.    Experimenters infect a group of rates with worms.  Eight days later, the experimenters select five rats at random and treat them with carbon tetrachloride. Two days later researchers count the number of worms in each of the rats.  This experiemt is repeated four times.
+
+\
+Is there reason to suspect that there is a significant difference between replications?
+
+```{r, echo = FALSE, message=FALSE, warning = FALSE}
+rats <- read_csv("https://www.dropbox.com/s/cigh9i484q51x6h/wormkiller.txt?dl=1")
+
+kable(rats)
+
+ ## HINT: 
+
+```
+
+
+```{r aq1, exercise = TRUE, message=FALSE, warning = FALSE}
+rats <- read_csv("https://www.dropbox.com/s/cigh9i484q51x6h/wormkiller.txt?dl=1")%>%
+  pivot_longer(cols = names(rats))
+
+
+```
+```{r aq1-solution}
+rats <- read_csv("https://www.dropbox.com/s/cigh9i484q51x6h/wormkiller.txt?dl=1")
+  rats <- pivot_longer(rats,cols = names(rats))
+
+model <- lm(value~name, rats)
+
+model%>%
+  anova()%>%
+    kable(digits = 3, "html",table.attr = "style='width:80%;'",align = "c")%>%
+    kable_styling(position = "center")
+
+model%>%
+  aov()%>%
+  TukeyHSD()%>%
+  extract2(1)%>%
+  kable(digits =  3,caption="Tukey Confidence Intervals for Difference in Treatment Means",booktabs = TRUE,col.names = c("Difference of Means","LCL","UCL",expression(p-value)),"html",table.attr = "style='width:80%;'",align = "c")%>%
+  kable_styling(position = "center")
+
+```
+2.    Researchers studying the effects of lutenizing hormone (LH) conducted an experiment where male rats were either kept under constant light, or were exposed to 14 hours of light followed by ten hours of darkness and given varying doses of lutenizing release hormone (LRH). The researchers recorded the rats' LH levels. 
+
+\
+Analyse the data to determine the effect of the light regime and LRH dosage on the production of LH in male rats. 
+
+```{r aq2, exercise = TRUE, message=FALSE, warning=FALSE}
+rats<-read_csv("https://www.dropbox.com/s/65evgh4eztsitjq/lhmale.txt?dl=1")
+
+
+```
+```{r aq2-solution}
+rats<-read_csv("https://www.dropbox.com/s/65evgh4eztsitjq/lhmale.txt?dl=1")
+colnames(rats) <- c("dose","normal","constant")
+rats$dose<-as.factor(rats$dose)
+
+rats<-pivot_longer(rats,cols = c(normal,constant))
+colnames(rats) <- c("dose","light","response")
+
+model <- lm(response~dose+light+dose:light, rats)
+
+model%>%
+  anova()%>%
+    kable(digits = 3, "html",table.attr = "style='width:80%;'",align = "c")%>%
+    kable_styling(position = "center")
+
+model%>%
+  aov()%>%
+  TukeyHSD()%>%
+  extract2(1)%>%
+  kable(digits =  3,caption="Tukey Confidence Intervals for Difference in Treatment Means",booktabs = TRUE,col.names = c("Difference of Means","LCL","UCL",expression(p-value)),"html",table.attr = "style='width:80%;'",align = "c")%>%
+  kable_styling(position = "center")
+
+model%>%
+  aov()%>%
+  TukeyHSD()%>%
+  extract2(2)%>%
+  kable(digits =  3,caption="Tukey Confidence Intervals for Difference in Treatment Means",booktabs = TRUE,col.names = c("Difference of Means","LCL","UCL",expression(p-value)),"html",table.attr = "style='width:80%;'",align = "c")%>%
+  kable_styling(position = "center")
+
+```
+
+
+
+```{r,echo=FALSE}
+htmltools::includeHTML("footer.html")
+```

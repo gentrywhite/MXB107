@@ -1,0 +1,399 @@
+---
+title: "MXB107 Worksheet 12 - Categorical Data Analysis"
+output:
+  learnr::tutorial:
+    theme: yeti
+    includes:
+    css: ["./css/QUT.css","./css/QUTtutorial.css"]
+    after_body: footer.html
+  progressive: true
+  allow_skip: true
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+  # if problems with knitting directory:
+  # set Knit Directory = Document Directory
+
+  # install libraries needed for worksheet
+knitr::opts_chunk$set(
+  fig.align = 'center',
+  collapse = TRUE,
+  comment = "#>"
+)
+
+  library(MXB107)
+  library(learnr)
+  library(gifski)
+  library(kableExtra)
+  library(pander)
+  library(shiny)
+
+```
+
+```{r, echo = FALSE}
+
+htmltools::includeHTML("header.html")
+htmltools::includeCSS("css/QUTtutorial.css")
+htmltools::includeCSS("css/QUT.css")
+
+```
+
+
+# Categorical Data Analysis 
+
+This Chapter deals with inference for categorical data.  In these cases, the data are counts of members in each category, and we are interested in the relationships between the categories.  We will need a few new tools and probability distributions that we haven't seen before to perform statistical tests on these data.  While these might be new, the basic principle of statistical hypothesis testing remains: we construct a null hypothesis if the probability of our data or some test statistic is small under the assumptions of the null hypothesis. 
+
+## Bivariate Data and Inference
+
+The first case we will consider is the case of the two factors with two categories each. 
+
+:::{.boxed}
+**Example:**\
+Rosen and Jerdee (1974) conducted several experiments using male bank supervisors attending management training as test subjects.  As a part of their training, the supervisors had to make decisions on items in their in-basket.  In one experiment, supervisors were given a personnel file, and they had to decide whether to promote the employee or hold the file and interview additional candidates.  Twenty-four of the supervisors examined files labelled as belonging to male employees, and twenty-four supervisors examined files belonging to female employees.  The results are summarised in the table.
+
+| | Male | Female |
+|:-:|:--:|:------:|
+|Promote|21|14|
+|Hold|3 | 10|
+
+What do you think of these results?
+
+:::
+
+### $2\times 2$ Contingency Tables as Test Statistics
+These data summarise a more complex data set, and as such, we can think of a table as a numerical summary or a test statistic.  Because as we will see, we can assign a sampling distribution to the table values and use that to make an inference. 
+
+If we re-write this table as:
+
+:::{.table}
+| $N_{11}$ | $N_{12}$ | $n_{1.}$ |
+|:--------:|:--------:|:--------:|
+| $N_{21}$ | $N_{22}$ | $n_{2.}$ |
+| $n_{.1}$ | $n_{.2}$ | $n_{..}$ |
+:::
+
+We can consider the cell counts as random variables.  If there were no gender bias among the supervisors' decisions to promote an employee, we would expect that about half of the 35 employees promoted would be male, and half would be female.  
+
+Let $n_{11}$ be the number of males promoted out of 35. In this case, if being male or female was equally likely, then 
+$$
+Pr(n_{11}) = \frac{{n_{1.}\choose n_{11}}{n_{2.}\choose n_{22}}}{{n_{..}\choose n_{.1}}}
+$$
+This is called the hypergeometric distribution and forms the basis of what is known as Fisher's Exact Test.  
+
+## Inference based on the Hypergeometric Distribution
+
+:::{.boxed}
+Given the data from the previous example, can we conclude that there is gender bias in the promotion decisions?
+
+So, let us establish that our null hypothesis is:
+$$
+H_0:\mbox{ There is no gender bias in promotion decisions}
+$$
+versus
+$$
+H_A:\mbox{ There is gender bias in promotion decisions}.
+$$
+
+The hypergeometric distribution gives us a tool for computing the probability of this particular table configuration under the null hypothesis.  So let us consider our test to reject if the value $n_{11}$ is in a rejection region defined by the tails of the hypergeometric distribution (which is symmetric). 
+
+Note that:
+$$
+Pr(N_{11}\geq n_{11}) = 0.025
+$$
+so we would reject the null hypothesis and conclude that there is gender bias in promotion decisions. 
+This test is easy to perform in `R` using the function `fisher.test()`
+```{r ex1, exercise = TRUE}
+tbl<-tibble(Male = c(21,3), Female = c(14,10))
+```
+```{r ex1-hint}
+fisher.test(tbl, alternative = "greater")%>%
+  pander()
+```
+Note that we did this as a one-sided test. What would the result be if we assumed it was a two-sided test?
+
+::: 
+
+## Approximate $\chi^2$ Tests 
+In cases where the tables are larger than a $2\times 2$, Fisher's Exact Test is computationally intractable,  as it relies on computing factorials, which can quickly become numerically unstable.  In these cases, we can use an alternative test method based on the $\chi^2$ distribution.  
+
+### The $\chi^2$ Distribution
+The $\chi^2$ distribution is defined as the probability distribution of a random variable
+$$
+X = \sum_{i=1}^nZ_i^2
+$$
+where $Z_i\sim N(0,1)$, hence $X\sim\chi^2_{\nu}$ where $\nu=n-1$ is the degrees of freedom.  A more detailed derivation of the $\chi^2$ distribution is not undertaken at this point; suffice to say that it will show it's utility as a sampling distribution to motivate our inference techniques. 
+
+
+### The $\chi^2$ Test of Homogeneity
+
+We will motivate the $\chi^2$ test of independence with an example that asks if the distribution of items across categories is the same for different factors?
+
+:::{.boxed}
+**Example:**\
+Jane Austen died, leaving her final novel *Sandition* unfinished, but a summary of the complete novel and the unwritten chapters existed.  An admirer of Austen's decided to complete this final novel and attempted to maintain a consistent (and accurate) style.  Morton (1978) examined this hybrid novel and the prior works of Austen to determine the degree of fidelity to style between the styles of Austen and her admirer.  A summary table of the occurrence of six common words in the works of Austen and the portion of *Sandition* completed by her admirer are as follows:
+
+| Word | Admirer | Austen |
+|:----:|:-------:|:------:|
+| a    | 83      | 434    |
+| an   | 29      | 62     |
+| this | 15      | 86     |
+| that | 22  | 236 |
+| with | 43  | 161 |
+| without | 4 | 38 |
+
+So, how close in style was Austen's admirer?  
+
+<button class = "solution">
+Solution
+</button>
+:::{.solution-panel}
+
+Suppose the rate of word occurrence (for these words) follows a multinomial distribution, defined in terms of the rate of occurrence for each word. That is, given $I=6$ words and $J=2$ authors, if $\pi_{ij}$ is the rate (or probability) of occurrence for the $ith$ word in the $jth$ column, if both authors were the ``same'', then the null hypothesis is 
+$$
+H_0:\pi_{i1}=\pi_{i2}=\cdots=\pi_{iJ}, \forall{i}
+$$ 
+versus 
+$$
+H_A:\mbox{ at least on $\pi_{ij}$ is different. }
+$$
+In this case, then we can summarise this as $H_0: \pi_{ij}=\pi_i \forall i$, and observe that under the null hypothesis, the best estimator (turns out the be the MLE) for $\pi_i$ is
+$$
+\hat{\pi}_i = \frac{n_{i.}}{n_{..}}.
+$$
+So from this, we can show that under the null hypothesis, $E_{ij}$ the expected number in cell $ij$ is 
+$$
+E_{ij} = \hat{\pi}_in_{.j}.
+$$
+It is natural then to assume that if the differences between the expected and observed values were very large, we would reject the null hypothesis.  By way of heuristic explanation, recall that for $X$, a Gaussian random variable with an observed value of $x$
+$$
+\frac{x-E(X)}{\sigma}\sim N(0,1)
+$$
+where $\sigma$ is the standard deviation of $X$. 
+
+In the same spirit, if $N_{ij}$ is a random variable for the number of 
+events in cell $ij$, we can assume that $N_{ij}$ is a random variable 
+with a Poisson distribution where $E(N_{ij})=Var(N_{ij})$, and for sufficiently large values, it is approximately Gaussian, then if $n_{ij}$ is the observed value
+$$
+\frac{n_{ij}-E(N_{ij})}{\sqrt{E(N_{ij})}}\sim N(0,1).
+$$
+Recall that the $\chi^2$ random variable is the sum of several standard normal random variables, and we can derive our test statistic as 
+$$
+X^2 = \sum_{i=1}^I\sum_{j=1}^J\frac{(O_{ij}-E_{ij})^2)}{E_{ij}}
+$$
+where $O_{ij}=n_{ij}$ and 
+$$
+X^2\sim\chi^2_{\nu}
+$$
+where $\nu=(I-1)(J-1)$.  From this, we can use the $\chi^2$ distribution as our sampling distribution under the null hypothesis and reject for $X^2>\chi^2_{\nu,1-\alpha}$.  This procedure is  \textbf{Pearson's $\chi^2$ test}. 
+:::
+:::
+
+:::{.boxed}
+**Example (cont'd):**\
+From the example of Jane Austen novels, we can compute the following values
+
+|Word | Admirer | Austen |
+|:---:|:-------:|:------:|
+| a | 83 (83.5) | 434 (433.5) |
+| an | 29 (14.7) | 62 (76.3) |
+| this | 15 (16.3)| 86 (84.7) |
+| that | 22 (41.7) | 236 (216.3) |
+| with | 43 (33.0)| 161 (171.0) |
+| without | 4 (6.8)| 38 (35.2) |
+  
+with the expected values for each cell shown in brackets. From this, we can compute Pearson's $\chi^2$ statistic and test the null hypothesis that the distribution of values in categories are the same in each column. Or that Jane Austen's admirer was able to imitate her style accurately.  In this case, $X^2 = 32.81$ and the critical value of $\chi^2_{5,0.95}=11.071$. Since $32.81>11.71$, we would reject the null hypothesis and conclude that the imitation was not the same style as the original. 
+
+We can also use the function `chisq.test` in `R` to perform the test directly
+```{r ex2, exercise = TRUE}
+tbl<-tibble(Admirer = c(83,29,15,22,43,4),Austen = c(434,62,86,236,161,38))
+```
+
+```{r ex2-hint}
+chisq.test(tbl)%>%
+  pander()
+```
+:::
+
+### The $\chi^2$ Test of Independence
+Next, we look at developing a very similar test targeting a different question: does belonging to one category change the probability that you belong to another?
+
+:::{.boxed}
+**Example:**\
+In a demographic study of women listed in \textit{Who's Who}, a table of who was married at least once and their level of education was analysed to determine if there was a relationship between marriage and education:
+
+|Education | Married Once | Married More Than Once | Total |
+|:--------:|:------------:|:----------------------:|:-----:|
+College | 550 | \phantom{0}61 | \phantom{0}611|
+No College | 681 | 144 | \phantom{0}825|
+Total | 1231 | 205 | 1436 |
+
+
+<button class = "solution">
+Solution
+</button>
+:::{.solution-panel}
+This is a situation where there are a total of $n = 1436$ observations cross-classified in a contingency table.  In this case, we can define the proportion of $n$ in row $i$ as 
+$$
+\pi_{i.}=\sum_{j=1}^J\pi_{ij}
+$$
+and the proportion of $n$ in column $j$ as 
+$$
+\pi_{.j}=\sum_{i=1}^I\pi_{ij}
+$$
+If the row and column classifications are independent of each other (i.e.\ education and marital status are not related), then 
+$$
+\pi_{ij}=\pi_{i.}\pi_{.j}.
+$$
+Under the null hypothesis that they are independent, then the best estimate (MLE) of the cell probabilities is
+$$
+\hat{\pi}_{ij} = \frac{n_{ij}}{n}.
+$$
+Therefore as we did in the previous example, we can define 
+$$
+E_{ij}=\hat{\pi}_{ij}n = \frac{n_{i.}n_{.j}}{n}
+$$
+and compute $X^2$ the Pearson's $\chi^2$ statistic and reject $H_0$ if
+$$
+X^2>\chi^2_{\nu,1-\alpha}
+$$
+where $\nu=(I-1)(J-1)$.  Note that superficially this appears similar to the previous test of homogeneity. Still, we compute the values of $E_{ij}$ differently, even if we interpret the test statistic the same way.  
+
+If we test our results, we obtain:
+
+| Education | Married Once | Married More Than Once |
+|:---------:|:------------:|:----------------------:|
+| College   | 550 (523.8)  | \phantom{0}61 (87.2)   |
+| No College | 681 (707.2) | 144 (117.8)            |
+
+where the expected values are given in brackets. The resulting $\chi^2$ statistic is $16.01$ with $\nu=1$ The critical value for $\alpha = 0.05$ is $\chi^2 = 3.84$, thus since $16.01>3,84$ we would reject the null hypothesis that marital status and education were independent. 
+
+Alternatively:
+```{r ex3, exercise = TRUE}
+tbl<-tibble(once = c(550,681),more = c(61,144))
+```
+```{r ex3-hint}
+chisq.test(tbl, correct = FALSE)%>%
+  pander()
+```
+
+Note that the option `correct = FALSE` is only used to replicate the results of manual calculations. If we use the continuity correction, the test statistic is $15.41$, but the results are still significant. It would be best if you used the continuity correction in most cases. 
+:::
+:::
+
+While the form and degrees of freedom for the test of homogeneity and the test of independence are very similar, the hypothesis differs. The test for homogeneity is derived under the assumption that the column or row margins (sums) are fixed, where the test for independence is derived under the assumption that only the total $n$ is fixed. Thus, the sampling scheme defining their test statistics differs. Because these tests are so similar, they are often confused. It is important to be aware of the distinction, especially when interpreting the results and understanding their appropriate application. 
+
+
+:::{.boxed}
+## Worksheet Practical Question 1
+
+Revisiting the example for bank supervisors and promotions 
+
+:::{.table}
+| | Male | Female |
+|:-:|:--:|:------:|
+|Promote|21|14|
+|Hold|3 | 10|
+:::
+What is the hypothesis?  Should we test for homogeneity or independence?
+Perform the computations by hand using the appropriate $\chi^2$ test.  
+
+**Hint**
+
+Note that for the test of homogeneity, the expected value of cell $ij$ is
+$$
+E_{ij}=\frac{n_{i.}n_{.j}}{n}
+$$
+where $n_{i.}$ is the sum of column $i$, $n_{.j}$ is the sum of row $j$, and $n$ is the sum of all the cells. 
+
+We can then calculate the $\chi^2$ statistic and evaluate it using `qchisq()` to find the critical value or `pchisq()` to find the $p$-value. 
+
+
+```{r pq1, exercise = TRUE}
+tbl<-tibble(Male = c(21,3), Female = c(14,10))
+
+
+```
+```{r pq1-hint}
+tbl<-tibble(Male = c(21,3), Female = c(14,10))
+
+N<-21+14+3+10
+
+E11<-(21+14)*(21+3)/N
+E12<-(21+14)*(14+10)/N
+E21<-(3+10)*(21+3)/N
+E22<-(14+10)*(3+10)/N
+
+X <- (E11-21)^2/E11+
+        (E12-14)^2/E12+
+          (E21-3)^2/E21+
+            (E22-10)^2/E22
+
+Xcrit<-qchisq(0.95,1)
+
+p_value<-pchisq(X,1,lower.tail = FALSE)
+
+
+```
+:::
+
+:::{.boxed}
+
+## Worksheet Practical Question 2
+
+Revisit the example on marital status and education.
+
+:::{.table}
+| Education | Married Once | Married More Than Once |
+|:---------:|:------------:|:----------------------:|
+| College   | 550   | \phantom{0}61    |
+| No College | 681  | 144             |
+:::
+
+What is the hypothesis?  Should we test for homogeneity or independence?
+Perform the computations by hand using the appropriate $\chi^2$ test.  
+
+**Hint**
+
+Note that for the test of independence, the expected value of cell $ij$ is
+$$
+E_{ij}=\frac{n_{i.}n_{.j}}{n}
+$$
+where $n_{i.}$ is the sum of column $i$, $n_{.j}$ is the sum of row $j$, and $n$ is the sum of all the cells. 
+
+We can then calculate the $\chi^2$ statistic and evaluate it using `qchisq()` to find the critical value or `pchisq()` to find the $p$-value. 
+
+```{r pq2, exercise = TRUE}
+tbl<-tibble(Once = c(550,681), More = c(61,144))
+
+
+```
+```{r pq2-hint}
+tbl<-tibble(Once = c(550,681), More = c(61,144))
+
+N<-sum(tbl)
+
+tbl<-tbl%>%mutate(rowsum = rowSums(.))%>%mutate(colsum = colSums(.[1:2]))
+
+
+E11<-tbl$rowsum[1]*tbl$colsum[1]/N
+E12<-tbl$rowsum[1]*tbl$colsum[2]/N
+E21<-tbl$rowsum[2]*tbl$colsum[1]/N
+E22<-tbl$rowsum[2]*tbl$colsum[2]/N
+
+X <- (E11-tbl[1,1])^2/E11+
+        (E12-tbl[1,2])^2/E12+
+          (E21-tbl[2,1])^2/E21+
+            (E22-tbl[2,2])^2/E22
+
+Xcrit<-qchisq(0.95,1)
+
+p_value<-pchisq(as.numeric(X),1,lower.tail = FALSE)
+
+
+```
+:::
+
+```{r,echo=FALSE}
+htmltools::includeHTML("footer.html")
+```

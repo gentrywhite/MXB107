@@ -1,0 +1,501 @@
+---
+title: "MXB107 Worksheet 4 - Probability Review"
+output:
+  learnr::tutorial:
+    theme: yeti
+    includes:
+    css: ["./css/QUT.css","./css/QUTtutorial.css"]
+    after_body: footer.html
+  progressive: true
+  allow_skip: true
+runtime: shiny_prerendered
+---
+
+```{r ws-setup, include=FALSE}
+  # if problems with knitting directory:
+  # set Knit Directory = Document Directory
+
+  # install libraries needed for worksheet
+knitr::opts_chunk$set(
+  fig.align = 'center',
+  collapse = TRUE,
+  comment = "#>"
+)
+
+  library(MXB107)
+  library(learnr)
+
+```
+
+```{r, echo = FALSE}
+
+htmltools::includeHTML("header.html")
+
+```
+
+#    Review of Probability
+
+Probability is a mathematical tool for quantifying uncertainty. It provides the tools to compute probabilities for both simple events and compound events, and provides the basis for modelling random variables, which are the building blocks of statistical models and statistical modelling. 
+
+## Definitions
+
+**Experiments** 
+
+:::{.boxed}
+An experiment is a situation or trial producing observable phenomena that are not possible to predict apriori.
+:::
+
+**Events** 
+
+:::{.boxed} 
+Events can be broken down into simple events or the outcome of a single repetition of a single experiment or trial.  A compound event (or sometimes just event) is a collection of simple events. 
+:::
+
+**Sample Space**
+
+:::{.boxed} 
+The sample space is the collection of all possible events for a single or combination of trials. 
+:::
+
+**Mutually Exclusive**
+
+:::{.boxed} 
+Events are mutually exclusive if it is impossible for both events to occur, i.e. the occurrence of one event precludes the occurrence of the other. 
+:::
+
+**Probability** 
+
+:::{.boxed} 
+The probability of an event can be defined as:
+
+*    The relative frequency of an event, e.g. for event $A$ the probability of $A$ is 
+$$
+Pr(A) = \lim_{n\rightarrow\infty}\frac{\# A}{n}
+$$
+*    The number of possible ways for $A$ to occur divided by the number of possible outcomes (combinatorics). 
+    $$
+    Pr(A) = \frac{\mbox{The number of ways $A$ can occur}}{\mbox{The number of possible outcomes}}
+    $$
+*    The area of the sub-region of sample space $S$ defined by $A$
+    $$
+    Pr(A)=\frac{\mbox{The area of $A$}}{\mbox{The area of $S$}}
+    $$
+    noting that without loss of generality we can assume that Area of $S=1$. 
+:::
+
+##    Probability Rules and Laws
+
+1.   Given sample space $S$, for all events $E\in S$
+
+:::{.boxed}
+  i)   $Pr(E)\in (0,1)$
+  ii)   $\sum_SPr(E)=1$
+:::
+
+2.   The complement of event $A$ denoted $A^c$is all events not in $A$.
+
+:::{.boxed}
+  i)   $Pr(A^c)=1-Pr(A)$
+  ii)   $A\cup A^c=S$
+  iii)   $Pr(S) = 1$
+:::  
+  
+3.   For two events $A$ and $B$ in sample space $S$ 
+
+:::{.boxed}
+$$
+\text{if }A\subset B\text{ then }Pr(A)<Pr(B).
+$$
+:::
+
+4.   The Addition Rule
+
+:::{.boxed}
+$$
+Pr(A\cup B) = Pr(A)+Pr(B)-Pr(A\cap B)
+$$
+:::
+
+5.   For two events $A$ and $B$ in sample space $S$ $Pr(A|B)$ is the conditional property of $A$ given that $B$ occurs.  
+
+:::{.boxed}
+  i)   If $A\cap B = \emptyset$ then $Pr(A|B) = 0$
+  ii)   $$ 
+        Pr(A|B) = \frac{Pr(A\cap B)}{Pr(B)}
+        $$
+  iii)   If $Pr(A|B)=Pr(A)$ then $A$ and $B$ are independent and $Pr(A\cap B) = Pr(A)Pr(B)$
+  iv)   $Pr(A\cap B)=Pr(A|B)Pr(B)$
+:::
+
+6.   Law of Total (Marginal) Probability 
+
+:::{.boxed}
+$$
+Pr(A) = \sum_{B_j\in S}Pr(A|B_j)Pr(B_j)
+$$
+:::
+
+7.   Bayes' Rule
+
+:::{.boxed}
+$$
+Pr(B|A) = \frac{Pr(A|B)Pr(B)}{Pr(A)}.
+$$
+:::
+
+##    Examples
+
+:::{.boxed}
+1.    For two six-sided die rolled together and there values summed. Define the experiment and list the events in the sample space.  Compute the probabilities for each event. 
+
+<button class="solution">
+Solution
+</button>
+:::{.panel}
+For each die there are six possible outcomes, all equally likely. So for two dice there are $6^2=36$ possible outcomes:
+$$
+\begin{array}{cccccc}
+(1,1) & (2,1) & (3,1) & (4,1) & (5,1) & (6,1) \\
+(1,2) & (2,2) & (3,2) & (4,2) & (5,2) & (6,2) \\
+(1,3) & (2,3) & (3,3) & (4,3) & (5,3) & (6,3) \\
+(1,4) & (2,4) & (3,4) & (4,4) & (5,4) & (6,4) \\
+(1,5) & (2,5) & (3,5) & (4,5) & (5,5) & (6,5) \\
+(1,6) & (2,6) & (3,6) & (4,6) & (5,6) & (6,6)
+\end{array}
+$$
+If we sum all the possible outcomes we see that there are in fact there are just 11 possible outcomes.
+<center>
+| Sum | Number of Combinations |  Probability |
+|:---:|:----------------------:|:-------------|
+| 2   | 1 |  $\frac{1}{36}$ |
+| 3   | 2 |  $\frac{2}{36}$ |  
+| 4   | 3 |  $\frac{3}{36}$ |
+| 5   | 4 |  $\frac{4}{36}$ |
+| 6   | 5 |  $\frac{5}{36}$ |
+| 7   | 6 |  $\frac{6}{36}$ |
+| 8   | 5 |  $\frac{5}{36}$ |
+| 9   | 4 |  $\frac{4}{36}$ |
+| 10  | 3 |  $\frac{3}{36}$ |
+| 11  | 2 |  $\frac{2}{36}$ |
+| 12  | 1 |  $\frac{1}{36}$ |
+</center>
+:::
+:::
+
+:::{.boxed}
+
+2.    Human blood can be classed as one of four types with either a positive or negative Rh factor according to the following probabilities:
+
+
+:::{.table-narrow}
+| Rh      |  **A**  |  **B**  |  **AB**  |  **O** |
+|:-------:|:-------:|:-------:|:--------:|:------:|
+| **+**   |   0.07  | 0.02    |   0.01   |  0.08  |
+| **-**   |   0.33  | 0.09    |  0.03    |  0.37  |
+:::
+
+
+i)    What is the probability that an individual will have either Type O or Type A blood?
+
+<button class="solution">
+Solution
+</button>
+:::{.panel}
+**Solution:**\
+The solution is simply the sum of the proportions of people who have A-,A+, O-, and O+ blood
+$$
+0.07+0.33+0.08+0.37=`r 0.07+0.33+0.08+0.37`
+$$
+:::
+
+ii)   What is the probability that an individual will have a positive Rh factor?
+
+<button class="solution">
+Solution
+</button>
+:::{.panel}
+**Solution:**\
+The solution is the sum of the probabilities
+$$
+\begin{align}
+Pr(+)&=Pr(A+)+Pr(B+)+PrAB+)+Pr(O+)\\
+&=0.07+0.02+0.01+0.08\\
+&=`r 0.07+0.02+0.01+0.08`
+\end{align}
+$$
+:::
+
+iii)    Given that an individual has blood type O , what is the probability that they will have negative Rh factor?
+
+<button class="solution">
+Solution
+</button>
+:::{.panel}
+**Solution:**\
+The solution can be found using the definition of conditional probability and the law of total probability 
+$$
+\begin{align}
+Pr(-|O)&=\frac{Pr(O|-)Pr(-)}{Pr(O)}\\
+&=\frac{Pr(O-)}{Pr(O)}\\
+&=\frac{0.37}{0.37+0.08}\\
+&=`r 0.37/(0.37+0.08)`
+\end{align}
+$$
+:::
+
+iv)   Given that an individual's blood type is not O, what is the probability that their Rh factor is positive?
+
+<button class="solution">
+Solution
+</button>
+:::{.panel}
+**Solution:**\
+This solution can be found using the definitions of conditional probability and the properties for the probabilities of complements
+$$
+\begin{align}
+Pr(+|O^c)&=\frac{Pr(O^c|+)Pr(+)}{Pr(O^c)}\\
+&=\frac{Pr(A+\cup B+\cup AB+)}{Pr(A\cup B\cup AB)}\\
+&=\frac{0.07+0.02+0.01}{1-(0.08+0.37)}\\
+&=\frac{0.10}{1-0.45}\\
+&=`r 0.10/0.55`
+\end{align}
+$$
+:::
+:::
+
+:::{.boxed}
+3.    What is the probability that two people share the same birthday (month and date,; not year)?  Given that there are 200 people enrolled in MXB107, what is the probability that no one shares the same birthday?
+
+<button class="solution">
+Solution
+</button>
+:::{.panel}
+**Solution:**\
+The solution is most directly found by finding the probability that two people _don't_ share the same birthday and then use the property of complimentary events. 
+Let $A$ be the event that two people share the same birthday and $A^c$ be the event that two people _dont't_ share a birthday, then
+```{r echo=FALSE}
+PrAc<-(365*364)/365^2
+PrA<-1-PrAc
+```
+$$
+Pr(A^c)=\frac{365}{365}\times\frac{364}{365}=`r PrAc`.
+$$
+
+
+and 
+$$
+Pr(A)=1-Pr(A^c)=1-`r PrAc`=`r PrA`.
+$$
+We can generailse this to $n$ people
+$$
+Pr(A^c)=\left(\frac{1}{365}\right)^n\times(365\times (365-1)\times\cdots\times (365-n))
+$$
+for $n=200$
+```{r echo=FALSE}
+PrAc<-prod(365:165/365)
+PrA<-1-PrAc
+```
+$$
+Pr(A^c)=\left(\frac{1}{365}\right)^{200}\times(365\times 364\times\cdots\times 165)=`r PrAc`
+$$
+then
+$$
+Pr(A)=1-`r PrAc`=`r PrA`
+$$
+:::
+:::
+
+##    Workshop Practical Questions
+
+### Probability from Simple Events
+
+Recall the counting method for computing probabilities for simple events:
+$$
+Pr(A)=\frac{\mbox{Number of ways that $A$ can occur}}{\mbox{Total number of outcomes}}
+$$
+given this method, consider the following questions
+
+:::{.boxed}
+
+1.    For any randomly selected card from a standard deck 52 cards:\
+   i.)   What is the probability that a player draws an ace?"\
+  ii.)    What is the probability that a player draws a diamond?"
+  
+<button class="solution">
+Solution
+</button>
+:::{.panel}
+**Solution:**\
+Note that there are 13 diamonds in a deck of 52 cards.  If there is an equal probability that I draw any card then we can use the formula:
+$$
+Pr(A)=\frac{\mbox{Number of ways that $A$ can occur}}{\mbox{Total number of outcomes}}
+$$
+to get
+$$
+\begin{aligned}
+Pr(\mbox{Player draws a diamond})&=\frac{\mbox{Number of Diamonds in a deck}}{\mbox{Number of Cards in a deck}}\\
+&=\frac{13}{52}\\
+&=\frac{1}{4}
+\end{aligned}
+$$
+and
+$$
+\begin{aligned}
+Pr(\mbox{Player draws an ace})&=\frac{\mbox{Number of aces in a deck}}{\mbox{Number of Cards in a deck}}\\
+&=\frac{4}{52}\\
+&=\frac{1}{13}
+\end{aligned}
+$$
+
+:::
+:::
+
+Recall the the definition of conditional probability and independence:
+$A$ and $B$ are independent events if 
+\[
+Pr(A|B)=Pr(A)
+\]
+From this then we can note that is $A$ and $B$ are independent then 
+\[
+Pr(A\cap B)=Pr(A)\times Pr(B)
+\]
+based on this, consider the following question:
+
+:::{.boxed}
+2.    Are the event "player draws an ace" and "player draws a diamond" independent?
+(**Hint:** compute the probability that a player draws the ace of diamonds.)
+
+<button class="solution">
+Solution
+</button>
+:::{.panel}
+**Solution:**\
+Again if we count the number of ace of diamonds there are in a deck, and use the formula
+$$
+Pr(A)=\frac{\mbox{Number of ways that $A$ can occur}}{\mbox{Total number of outcomes}}
+$$
+then we can compute
+$$
+\begin{aligned}
+Pr(\mbox{I Draw the ace of diamonds})&=\frac{\mbox{Number of aces of diamonds in a deck}}{\mbox{Number of Cards in a deck}}\\
+&=\frac{1}{52}
+\end{aligned}
+$$
+Which is 
+$$
+\begin{aligned}
+Pr(\mbox{Ace of Diamonds})&=\frac{1}{52}\\
+&=Pr(\mbox{Ace})Pr(\mbox{Diamond})\\
+&=\frac14\frac{1}{13}\\
+&=\frac{1}{52}
+\end{aligned}
+$$
+So because $Pr(\mbox{Ace and Diamond})=Pr(\mbox{Ace})Pr(\mbox{Diamond})$ the events are independent. 
+:::
+
+:::
+
+:::{.boxed}
+3. A fair coin is tossed five times, what is the probability of getting a sequence of three heads?
+
+<button class="solution">
+Solution
+</button>
+:::{.panel}
+**Solution:**\
+Given five coin tosses there are $2^5=32$ possible outcomes.  The possible ways to get a sequence of three heads are:\
+HHHTT,\
+THHHT,\
+TTHHH,\
+THHHH,\
+HTHHH,\
+HHHTH,\
+HHHHT,\
+HHHHH\
+So there are eight out of 32 ways to get a sequence of three heads
+$$
+Pr(\mbox{Sequence of three heads})=\frac{8}{32}=\frac{1}{4}
+$$
+:::
+:::
+
+:::{.boxed}
+
+4.    If two fair dice are tossed:\
+  i.)   What is the probability of rolling 'doubles'",\
+  ii.)  What is the probability that both dice show an odd number",
+  
+<button class="solution">
+Solution
+</button>
+:::{.panel}
+**Solution:**\
+There are $6^2=36$ possible outcomes for a pair of dice, there are six ways to get doubles so
+$$
+Pr(\mbox{doubles})=\frac{6}{36}=\frac{1}{6}
+$$
+The ways that I can get two odd numbers is:\
+(1,1),\
+(1,3),\
+(1,5),\
+(3,3),\
+(3,5),\
+(5,5),\
+(3,1),\
+(5,1),\
+(5,3)\
+
+So there are nine ways out of 36
+$$
+Pr(\mbox{two odd numbers})=\frac{9}{36}=\frac14
+$$
+:::
+:::
+
+### Conditional Probability and Bayes' Theorem
+
+Recall the Law of Total Probability and the definition of marginal probability:
+$$
+Pr(A)=\sum_{j=1}^mPr(A|B_j)Pr(B_j)
+$$
+where $Pr(A|B_j)Pr(B_j)=Pr(A\cap B_j)$. 
+
+Note that using this rule and the definition of conditional probability we can derive Bayes' Theorem
+$$
+Pr(B|A)=\frac{Pr(A|B)Pr(B)}{Pr(A)}.
+$$
+Considering these rules when answering the following questions.
+
+:::{.boxed}
+
+5.    There are three cabinets $A$, $B$, and $C$, each with two drawers.  Each drawer contains one coins; $A$ has two gold coins, $B$ has two silver coins, and $C$ has one gold coin and one silver coin.  A cabinet is chosen at random and one drawer is opened, and a silver coin is found: 
+i.    What is the probability that a drawer selected at random contains a silver coin?
+ii.   For a randomly selected cabinet what is the probability that both drawers contain a silver 
+iii.    If a cabinet is chosen at random is chosen, one drawer is opened, and that drawer contains a silver coin, what is the probability that the other drawer in the same cabinet contains a silver coin
+
+<button class="solution">
+Solution
+</button>
+:::{.panel}
+**Solution 1**:\
+There are three cabinets with two drawers each and three of the six drawers contain a silver coin, so a drawer chosen at random has a $3/6$ or $1/2$ probability of containing a silver coin. 
+
+**Solution 2:**\
+There are three cabinets and one of the three contains two silver coins so a cabinet chosen at random has a $1/3$ probability of having a silver coin in both drawers. 
+
+**Solution 3:**\
+Using Bayes Theorem, the Probability that we selected a cabinet that has two silver coins is $1/3$, the probability that a drawer contains a silver coin is $3/6=1/2$ so
+$$
+\begin{aligned}
+Pr(\mbox{Two silver coins}|\mbox{one silver coin})&=\frac{Pr(\mbox{Cabinet contains one silver coin and two silver coins})}{Pr(\mbox{Cabinet has a silver coin})}\\
+&=\frac{1/3}{1/2}\\
+&=\frac23
+\end{aligned}
+$$
+::: 
+:::
+
+```{r,echo=FALSE}
+htmltools::includeHTML("footer.html")
+```
+

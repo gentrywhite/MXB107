@@ -1,0 +1,829 @@
+---
+title: "MXB107 Worksheet 9 - Small Sample Inference"
+output:
+  learnr::tutorial:
+    theme: yeti
+    includes:
+    css: ["./css/QUT.css","./css/QUTtutorial.css"]
+    after_body: footer.html
+  progressive: true
+  allow_skip: true
+runtime: shiny_prerendered
+---
+
+```{r ws-setup, include=FALSE}
+  # if problems with knitting directory:
+  # set Knit Directory = Document Directory
+
+  # install libraries needed for worksheet
+knitr::opts_chunk$set(
+  fig.align = 'center',
+  collapse = TRUE,
+  comment = "#>"
+)
+
+  library(MXB107)
+  library(learnr)
+  library(gifski)
+  library(kableExtra)
+
+```
+
+```{r, echo = FALSE}
+
+htmltools::includeHTML("header.html")
+htmltools::includeCSS("css/QUTtutorial.css")
+htmltools::includeCSS("css/QUT.css")
+
+```
+
+#   Statistical Hypothesis Testing for Small Samples
+
+##   Small Sample Sampling Statistic Distribution: Student's $t$ - distribution
+In Weeks 7 and 8, we looked at methods for estimating intervals and testing hypotheses based on the sampling distribution for estimates based on large samples.  The definition of large is somewhat subjective, but the general assumption is that $n\geq 30$ is large enough in most cases to assume that the sampling distribution of $\bar{x}\sim N(\mu,\sigma^2/n)$, even when we had to substitute the estimate $s^2$ for $\sigma^2$.  
+
+The assumption of Gaussian behaviour poses two problems, first often collecting $30$ or more samples in impractical, and second, the assumption of the Gaussian sampling distribution doesn't take into account the extra variability due to the estimation of $\sigma^2$.   In short, when $n$ is small, then the Gaussian  assumption can fail as 
+$$
+\frac{\sqrt{n}(\bar{x}-\mu)}{s}\neq \frac{\sqrt{n}(\bar{x}-\mu)}{\sigma}.
+$$
+Instead, we need a new probability distribution that takes into account the extra variability caused by using the estimate $s$ instead of $\sigma$.  When $n$ is small ($<30$), then it can be shown that
+$$
+\frac{\sqrt{n}(\bar{x}-\mu)}{s}\stackrel{d}{\rightarrow} t_{\nu}
+$$
+where the degrees of freedom $\nu$ is equal to $n-1$.  Student's $t$ distribution is a symmetric distribution that is superficially similar to the Gaussian distribution but has heavier tails, and as $\nu$ increases Student's $t$ distribution looks more and more Gaussian. Note that for $X\sim t_{\nu}$
+$$
+E(X) = 0,\mbox{ and } Var(X)=\frac{\nu}{\nu-2},\:\nu>2
+$$
+where the variance is greater than $1$, thus the heavier tails compared with the standard Gaussian distribution $N(0,1)$, but that as $\nu$ (or $n$) increases then the variance approaches $1$ implying that the two densities converge as $n$ approaches infinity.  The GIF below illustrates this behaviour, the solid line is a standard normal Gaussian distribution, and the broken line is Student's $t$ distribution.  Notice that as $\nu$ increases, the two distributions approach convergence. 
+
+```{r,animation.hook="gifski",interval=0.5,echo = FALSE}
+set.seed(123456789)
+
+x<-seq(-4,4,len = 1000)
+nu<-seq(1:30)
+
+for(i in 1:30)
+{
+  main_txt <- paste0("Gaussian and Student's t Distribution with ",i," degrees of freedom")
+  curve(dnorm, from = -4, to = 4, main = main_txt)
+        curve(dt(x,i),add = TRUE, lty = 2)
+}
+
+```
+
+
+## Inference About the Population Mean for Small Samples
+Student's $t$ distribution is more reasonable (and conservative) to use when computing confidence intervals or performing hypothesis testing on small samples. To do this, we note that the sampling density of the quantity
+$$
+t=\frac{\sqrt{n}(\bar{x}-\mu)}{s}\sim t_{\nu}.
+$$
+The rejection rules for evaluating hypotheses are the same for the $t$ statistic as for the $Z$ statistic.  Given a Type I Error Rate of $\alpha$ we identify a critical value of $t$ 
+$$
+t_{\nu,\alpha} = \{t:Pr(t<t_{\nu,\alpha})=1-\alpha\}
+$$
+for a single-sided test and 
+$$
+t_{\nu,\alpha/2}=\{t:Pr(t<t_{\nu,\alpha/2})=1-\alpha/2\}
+$$
+for a two-sided test.  Then our rejection rule becomes
+
+| $H_0$ | Reject if |
+|:------:|:---------:|
+| $\mu = \mu_0$ | $t>|t_{\nu,\alpha/2}|$ |
+| $\mu\geq \mu_0$ | $t< -t_{\nu,\alpha}$ |
+| $\mu\leq \mu_0$ | $t>t_{\nu,\alpha}$ |
+
+:::{.boxed}
+
+##    Example 1 Synthetic Diamonds
+
+**Example**
+
+A new process for producing synthetic diamonds is only profitable if the average weight of the diamonds produced is greater than 0.5 carats.  Six samples from the new process are created weighing: $(0.46,0.61,0.52,0.48,0.57, 0.54)$ carats. Set up a hypotheses test to determine whether or not the process is profitable. Assume a Type I error rate of $\alpha = 0.05$. 
+
+```{r ex1, exercise = TRUE}
+x <- c(0.46,0.61,0.52,0.48,0.57, 0.54)
+
+```
+
+<button class = "solution">
+Solution
+</button>
+:::{.solution-panel}
+<p style="font-size:5px">
+<br>
+</p>
+
+Since we want to determine if the process is profitable, we will set up our null hypothesis to assume that it is not:
+$$
+H_0: \mu\leq 0.5\qquad\mbox{and}\qquad H_A: \mu>0.5
+$$
+Compute the sample mean, sample standard deviation, and test statistic $t$
+$$  
+\begin{aligned}
+t &= \frac{\sqrt{n}(\bar{x}-\mu_0)}{s}\\
+& = \frac{\sqrt{6}(0.53-0.50)}{0.056}\\
+& = 1.32\\
+&1.32<2.015\mbox{, fail to reject the null hypothesis.}
+\end{aligned}
+$$
+```{r}
+mu0<-0.5
+x<-c(0.46,0.61,0.52,0.48,0.57,0.54)
+n<-length(x)
+s <- sd(x)
+xbar <- mean(x)
+SE <-s/sqrt(n)
+t<-(xbar-mu0)/SE
+res<-ifelse(t>qt(0.95,n-1), "reject the null hypothesis.", "fail to reject the null Hypothesis" )
+```
+**The test statistic \emph{t} is `r paste0(round(t,3))` therefore we should `r res`. **
+
+**OR**
+
+We can use the `t.test()` in R:
+```{r}
+x<-c(0.46,0.61,0.52,0.48,0.57,0.54)
+t.test(x,alternative = "greater", mu = 0.5, conf.level = 0.95)%>%
+  pander()
+```
+:::
+:::
+
+:::{.boxed
+}
+##    Example 2 Paint Coverage
+
+**Example**
+
+House paint is sold in containers labelling the coverage and drying time for a single coat of paint.  
+One manufacturer's packaging claims that a four-litre can of paint covers 37 square metres.  
+This claim is tested by drawing ten cans of paint at random and painting ten identical surfaces using the cans of paint and the same methods.  
+The resulting coverage for each can of paint:
+<br>
+```{r, include = TRUE, echo = FALSE}
+x<-c(28.9, 28.9, 38.3, 34.2, 41.5, 34.9, 28.2, 38.1, 33.9, 32.5)
+
+x.tab = matrix(x,nrow = 2)%>%kable(format="html") %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+gsub("<thead>.*</thead>", "", x.tab)
+```
+<br>
+Compute the $95\%$ confidence interval for the mean coverage for a can of paint.  Does this evidence support the manufacturer's assertion that one can of paint will provide 37 m$^2$ of coverage?
+
+```{r ex2, exercise = TRUE}
+x<-c(28.9, 28.9, 38.3, 34.2, 41.5, 34.9, 28.2, 38.1, 33.9, 32.5)
+
+```
+
+<button class = "solution">
+Solution
+</button>
+:::{.solution-panel}
+<p style="font-size:5px">
+<br>
+</p>
+
+We want to compute a 95\% confidence interval of the form:
+$$
+\begin{aligned}
+\bar{x}\pm t_{\nu,\alpha/2}\frac{s}{\sqrt{n}}&=\\
+&=33.94\pm 2.26\frac{4.48}{\sqrt{10}}\\
+&=(30.74, 37.14)
+\end{aligned}
+$$
+
+```{r}
+x <- c(28.9, 28.9, 38.3, 34.2, 41.5, 34.9, 28.2, 38.1, 33.9, 32.5)
+
+n <- length(x)
+
+xbar<-mean(x)
+s<-sd(x)
+t.crit<-qt(0.975,n-1)
+
+UCL <- xbar + t.crit * s / sqrt(n)
+LCL <- xbar - t.crit * s / sqrt(n)
+```
+**The confidence interval is** (`r paste(round(LCL,3),round(UCL,3),sep = ",")`).
+
+
+**OR**
+
+```{r}
+x <- c(28.9, 28.9, 38.3, 34.2, 41.5, 34.9, 28.2, 38.1, 33.9, 32.5)
+
+t.out <- t.test(x,alternative = "two.sided", mu = 37, conf.level = 0.95)
+
+t.out$conf.int%>%
+  t()%>%
+  kable(digits = 3,col.names = c("Lower Conf. Int.", "Upper Conf. Int."),align = "c")%>%
+  column_spec(column = 1:2,width = "3.5cm")
+
+```
+Since we are asked if the evidence supports the manufacturer's assertion that a can of their paint will provide 37 m$^2$ of coverage we set the hypotheses as:
+$$
+H_0:\mu = 37\qquad\mbox{and}\qquad H_A:\mu\neq 37
+$$
+and assume a Type I error rate of $\alpha = 0.05$. 
+
+Given that the confidence interval contains the value 37, we fail to reject the null hypothesis.  However, we can also perform the whole test pretty easily.
+$$
+\begin{aligned}
+t &= \frac{\sqrt{n}(\bar{x}-\mu_0)}{s}\\
+& = \frac{\sqrt{10}(33.94-37)}{4.48}\\
+& = -2.16\\
+&|-2.16|<2.26\mbox{, fail to reject the null hypothesis}
+\end{aligned}
+$$
+
+```{r}
+x <- c(28.9, 28.9, 38.3, 34.2, 41.5, 34.9, 28.2, 38.1, 33.9, 32.5)
+mu0<-37
+n <- length(x)
+
+xbar<-mean(x)
+s<-sd(x)
+SE<-s/sqrt(n)
+
+t.crit<-qt(0.975,n-1)
+
+t<-(xbar-mu0)/SE
+
+res<-ifelse(abs(t)>t.crit, "reject the null hypothesis.", "fail to reject the null Hypothesis" )
+```
+**The test statistic \emph{t} is `r paste0(round(t,3))` therefore we should `r res`. **
+
+**OR**
+
+```{r}
+x <- c(28.9, 28.9, 38.3, 34.2, 41.5, 34.9, 28.2, 38.1, 33.9, 32.5)
+t.test(x,alternative = "two.sided", mu = 37, conf.level = 0.95)%>%
+  pander()
+```
+:::
+:::
+
+## Inference About the Difference in Population Means for Small Samples
+In many cases, the differences in population means are also of interest, and we have to make adjustments to the test procedure based on small sample sizes.  Under the assumptions for the Gaussian distribution of sample statistics based on large samples, we could show that the statistic for testing the difference between population means
+$$
+\frac{\bar{x}_1-\bar{x}_2}{\sqrt{\frac{\sigma^2_1}{n_1}+\frac{\sigma^2_2}{n_2}}}\approx \frac{\bar{x}_1-\bar{x}_2}{\sqrt{\frac{s^2_1}{n_1}+\frac{s^2_2}{n_2}}}
+$$ 
+follows a Gaussian distribution.  Unfortunately, when the sample sizes are small, this property holds only when $\sigma^2_1=\sigma_2^2$ or 
+$$
+\sqrt{\frac{\sigma_1^2}{n_1}+\frac{\sigma_2^2}{n_2}}=\sqrt{\sigma^2\left(\frac{1}{n_1}+\frac{1}{n_2}\right)}.
+$$
+This result means that by extension the two sample variances should be equal, yielding our test statistic
+$$
+t=\frac{\bar{x}_1-\bar{x}_2}{\sqrt{s^2\left(\frac{1}{n_1}+\frac{1}{n_2}\right)}}.
+$$
+In this case, we can show that the resulting test statistic does follow Student's $t$ distribution.  In most cases, the two-sample variances are not equal, and we want to use both of them to estimate the common or \emph{pooled} variance $s_p^2$, the weighted average
+$$
+s^2_{p}=\frac{(n_1-1)s_1^2+(n_2-1)s_2^2}{n_1+n_2-2}
+$$
+resulting in the test statistic
+$$
+t=\frac{\bar{x}_1-\bar{x}_2}{\sqrt{s_{p}^2\left(\frac{1}{n_1}+\frac{1}{n_2}\right)}}.
+$$
+
+
+
+:::{.boxed}
+## Example 3 On-line versus In-person Classes
+
+**Example**
+
+A unit can be taken either attending lecture in-person or by participating in on-line sessions.  To test the difference between academic outcomes for students attending on-line lectures versus in-person lectures, students in each group take the same exam.  Scores out of 45 are recorded for $n_1=n_2=9$ students.
+
+```{r, echo = FALSE}
+
+df<-data.frame(Online = c(32,37,35,28,41,44,35,31,34), In_person = c(35,31,29,25,34,40,27,32,31))
+
+kable(df, align = "c", col.names = c("Online", "In-person"), "pipe")
+
+```
+
+Let $\mu_1$ and $\mu_2$ be the mean scores for the on-line group and the in-person group respectively, is there a difference between the average outcome for online versus in-person students?
+
+```{r ex3, exercise = TRUE}
+df<-data.frame(Online = c(32,37,35,28,41,44,35,31,34), In_person = c(35,31,29,25,34,40,27,32,31))
+
+
+```
+
+<button class = "solution">
+Solution
+</button>
+:::{.solution-panel}
+<p style="font-size:5px">
+<br>
+</p>
+
+Because the question asks us about a difference, we construct our hypotheses as a two-sided test:
+$$
+H_0: \mu_1=\mu_2\qquad\mbox{and}\qquad H_A:\mu_1\neq\mu_2
+$$
+$$
+H_0: \mu_1-\mu_2=0\qquad\mbox{and}\qquad H_A:\mu_1-\mu_2\neq 0.
+$$
+Note that this is a generalisation of the hypotheses:
+$$
+H_0: \mu_1-\mu_2=\Delta_0\qquad\mbox{and}\qquad H_A:\mu_1-\mu_2\neq \Delta_0
+$$
+with $\Delta_0$.
+$$
+t = \frac{\bar{x}_1-\bar{x}_2}{\sqrt{s_{p}^2\left(\frac{1}{n_1}+\frac{1}{n_2}\right)}}
+$$
+where
+$$
+\begin{aligned}
+s_p^2 & = \frac{(n_1-1)s_1^2+(n_2-1)s_2^2}{n_1+n_2-2}\\
+& = \frac{(9-1)24.44 + (9-1)20.03}{9+9-2}\\
+& = 22.24
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+t &= \frac{\bar{x}_1-\bar{x}_2}{\sqrt{s_{p}^2\left(\frac{1}{n_1}+\frac{1}{n_2}\right)}}\\
+& = \frac{35.22-31.56}{22.24\left(\frac{1}{9}+\frac{1}{9}\right)}\\
+& = 1.65\\
+& |1.65|<2.12\mbox{, fail to reject the null hypothesis.}
+\end{aligned}
+$$
+
+```{r}
+x1 <- c(32,37,35,28,41,44,35,31,34)
+x2 <- c(35,31,29,25,34,40,27,32,31)
+
+Delta0<-0
+
+n1 <- length(x1)
+n2 <- length(x2)
+
+xbar1 <- mean(x1)
+xbar2 <- mean(x2)
+var1<-var(x1)
+var2<-var(x2)
+
+sp<-((n1-1)*var1+(n2-1)*var2)/(n1+n2-2)
+SE<-sqrt(sp*(1/n1+1/n2))
+
+t<-((xbar1-xbar2)-Delta0)/SE
+
+t.crit<-qt(0.975,n1+n2-2)
+
+res<-ifelse(abs(t)>t.crit, "reject the null hypothesis.", "fail to reject the null Hypothesis" )
+```
+**The test statistic \emph{t} is `r paste0(round(t,3))` therefore we should `r res`. **
+
+**OR**
+
+```{r}
+x1 <- c(32,37,35,28,41,44,35,31,34)
+x2 <- c(35,31,29,25,34,40,27,32,31)
+t.test(x1,x2,alternative = "two.sided", mu = 0, conf.level = 0.95)%>%
+  pander()
+```
+
+Notice how since this is a two-sided test the order of $\mu_1$ and $\mu_2$ doesn't matter.  **BUT** this can be very important for one-sided tests. 
+:::
+:::
+
+##    Unequal Variances and Correction to the Degrees of Freedom
+Note that we use pooled variance predicated on the idea that the two population variances are equal (despite differences in the sample variances).  If the population variances differ greatly, there is an alternative procedure for estimation and testing using an \emph{approximate} $t$-distribution.  As a rule of thumb, we use this procedure when 
+$$
+\frac{\mbox{Large }s^2}{\mbox{Smaller }s^2}>3.
+$$ 
+In this case, the use of the pooled variance is inappropriate, and each population variance is estimated by its sample variance, resulting in the familiar test statistic
+$$
+t = \frac{(\bar{x}_1-\bar{x}_2)-\Delta_0}{\sqrt{\frac{s_1^2}{n_1}+\frac{s_2^2}{n_2}}}
+$$
+(note that $\Delta_0 $ is typically $0$). 
+This sample statistic is familiar but, when the sample sizes are small, the degree of freedom is adjusted to account for the unequal variances.  
+$$
+\nu\approx\frac{\left(\frac{s_1^2}{n_1}+\frac{s_2^2}{n_2}\right)^2}{\frac{(s_1^2/n_1)^2}{n_1-1}+\frac{(s_2^2/n_2)^2}{n_2-1}}
+$$
+because this is typically a non-integer number, the result is truncated (not rounded) and used as the degree of freedom $\nu$ for finding the critical value of $t$ for the hypothesis test or confidence interval. 
+
+:::{.boxed}
+##    Example 4 Unequal Variances
+
+**Example**
+
+Data are collected to measure the impact strength of two different packaging materials
+```{r,echo = FALSE}
+df <- tibble('Material 1' = c(1.25,1.16,1.33,1.15,1.23,1.20,1.32,1.28,1.21),
+              'Material 2' = c(0.89,0.91,0.97,0.95,0.94,0.92,0.98,0.96,0.98))
+
+kable(df,col.names = c("Material 1", "Material 2"), "pipe")
+```
+Is there a difference between the strengths of the two packing materials?  Test this using the appropriate hypotheses at the Type I Error Rate of $\alpha = 0.05$. 
+
+
+```{r ex4, exercise = TRUE}
+
+df <- tibble('Material 1' = c(1.25,1.16,1.33,1.15,1.23,1.20,1.32,1.28,1.21),
+              'Material 2' = c(0.89,0.91,0.97,0.95,0.94,0.92,0.98,0.96,0.98))
+
+```
+
+<button class = "solution">
+Solution
+</button>
+:::{.solution-panel}
+<p style="font-size:5px">
+<br>
+</p>
+
+Again since the question asks us about a difference, the hypotheses are:
+$$
+H_0: \mu_1=\mu_2\qquad\mbox{and}\qquad H_A:\mu_1\neq\mu_2
+$$
+or
+$$
+H_0: \mu_1-\mu_2=0\qquad\mbox{and}\qquad H_A:\mu_1-\mu_2\neq 0.
+$$
+But we do need to check the assumption of equal variances:
+$$
+\begin{aligned}
+\frac{\max(s_1^2,s_2^2)}{\min(s_1^2,s_2^2)}& = \\
+& = \frac{0.00415}{0.00103}\\
+& = 4.038\mbox{, we cannot assume that variances are approximately equal.}
+\end{aligned}
+$$
+```{r}
+x1 <- c(1.25,1.16,1.33,1.15,1.23,1.20,1.32,1.28,1.21)
+x2 <- c(0.89,0.91,0.97,0.95,0.94,0.92,0.98,0.96,0.98)
+
+var1 <- var(x1)
+var2 <- var(x2)
+
+res <- max(var1,var2)/min(var1,var2)
+ans <- ifelse(res > 3, "conclude variances are unequal.", "conclude variances are approximately equal.")
+
+```
+**The ratio of sample variances is `r paste0(round(res,3))` therefore we should `r ans` **
+
+The corrected degrees of freedom is 
+$$
+\begin{aligned}
+\nu & \approx\frac{\left(\frac{s_1^2}{n_1}+\frac{s_2^2}{n_2}\right)}{\frac{(s_1^2/n_1)^2}{n_1-1}+\frac{(s_2^2/n_2)^2}{n_2-1}}\\
+& \approx \frac{\left(\frac{0.00415}{9}+\frac{0.00103}{9}\right)}{\frac{(0.00415/9)^2}{9-1}+\frac{(0.00103/9)^2}{9-1}}\\
+& \approx 11.73\mbox{, set }\nu=11
+\end{aligned}
+$$
+$$
+\begin{aligned}
+t & = \frac{\bar{x}_1-\bar{x}_2}{\sqrt{\frac{s_1^2}{n_1}+\frac{s_2^2}{n_2}}}\\
+& = \frac{1.24-0.94}{\sqrt{\frac{0.00415}{9}+\frac{0.00103}{9}}}\\
+& = 12.18\\
+& \phantom{=}|12.18|>2.201\mbox{, reject the null hypothesis.}
+\end{aligned}
+$$
+```{r}
+x1 <- c(1.25,1.16,1.33,1.15,1.23,1.20,1.32,1.28,1.21)
+x2 <- c(0.89,0.91,0.97,0.95,0.94,0.92,0.98,0.96,0.98)
+
+n1 <- length(x1)
+n2 <- length(x2)
+
+xbar1 <- mean(x1)
+xbar2 <- mean(x2)
+
+var1 <- var(x1)
+var2 <- var(x2)
+
+num<-((var1+var2)/n1)^2
+den<-((var1/n1)^2/(n1-1))+((var2/n2)^2/(n2-1))
+
+df <- trunc(num/den)
+
+t<-(xbar1-xbar2)/sqrt(var1/n1+var2/n2)
+
+t.crit<-qt(0.975,df)
+
+res<-ifelse(abs(t)>t.crit, "reject the null hypothesis.", "fail to reject the null hypothesis")
+
+```
+**The test statistic \emph{t} is `r paste0(round(t,3))` therefore we should `r res`. **
+
+**OR**
+
+```{r}
+x1 <- c(1.25,1.16,1.33,1.15,1.23,1.20,1.32,1.28,1.21)
+x2 <- c(0.89,0.91,0.97,0.95,0.94,0.92,0.98,0.96,0.98)
+t.test(x1,x2,alternative = "two.sided", mu = 0, var.equal = FALSE, conf.level = 0.95)%>%
+  pander()
+```
+Note that by setting the option `var.equal = FALSE` the test procedure uses the corrected value for $\nu$ automatically.
+:::
+:::
+
+
+##    Inference About the Difference in Population Means for Small Samples: Paired Differences
+The two-sample $t$-test is appropriate when samples are \emph{independent}, but in many cases, we want to compare two \emph{dependent} samples. This case arises when the two samples are paired or matched.  Examples of this include measuring subjects before and after treatments or measuring two quantities from the same subject.  In this case, if we want to test the differences we have to use a different method, we take the difference in the observations and then design hypotheses based on this "single" sample.  To illustrate the difference in these approaches, consider the following example.
+
+
+:::{.boxed}
+##    Example 5 Tyre Wear
+
+**Example**
+
+We test the difference between two types of tyre (Type A and Type B) by selecting one tyre of each type at random and then fitting them to the rear wheels of one of five cars.  Each car is driven for a specified number of kilometres, and the observed wear is measured. 
+```{r,echo = FALSE}
+A <- c(10.6,9.8,12.3,9.7,8.8)
+B <- c(10.2,9.4,11.8,9.1,8.3)
+
+data.frame(A,B)%>%
+  kable(col.names = c("Tyre A", "Tyre B"),"pipe")
+
+```
+If we treat these samples as independent and perform a two-sample $t$ test of the hypotheses
+$$
+H_0: \mu_1-\mu_2 = 0\qquad\mbox{and}\qquad H_A:\mu_1-\mu_2\neq 0
+$$
+the resulting test statistic is
+$$
+t = \frac{(\bar{x}_1-\bar{x}_2)-0}{\sqrt{s^2_p\left(\frac{1}{n_1}+\frac{1}{n_2}\right)}}
+$$
+where
+$$
+s_p^2=\frac{(4)(1.316)^2+(4)(1.328)^2}{8}=1.748
+$$
+$$
+t = \frac{(10.24-9.76)}{\sqrt{1.748\left(\frac{1}{5}+\frac{1}{5}\right)}}=0.57
+$$
+```{r}
+A <- c(10.6,9.8,12.3,9.7,8.8)
+B <- c(10.2,9.4,11.8,9.1,8.3)
+
+t.test(A,B,alternative = "two.sided",mu = 0, conf.level = 0.95)%>%
+  pander()
+
+```
+
+Assuming a Type I Error Rate of $\alpha = 0.05$, the critical value for testing our hypothesis is $t_{8, 0.975}$ which we can find from the table (or from \texttt{qt(0.975,8)}) as $2.306$.  As $|0.57|<2.306$ we would fail to reject the hypothesis and conclude that there is insufficient evidence of a difference between the two types of tyre. 
+
+However, we notice that every measurement for Tyre A is greater than the corresponding measurement for Tyre B.  And recall that each measurement is for the same car, so for each car, Tyre A shows greater wear than for Type B.  This cast suspicion on the results of our independent two-sample $t$ test, and seems to indicate that there is a difference between the two types of tyre. 
+
+It turns out that there is an ``error'' in the experimental design.  Suppose the experimenter had treated each wheel as a unit for random allocation. In that case, that is allocated tyres to each of the ten wheels (five cars, two wheels each) randomly (so that for instance, a car might have two of the same type of tyres), then the two samples would be independent.  As it stands, because the experimenter allocated one type of tyre to each car, the results are \emph{paired} or \emph{matched}.  In this case, we should consider \emph{difference} in wear patterns between the tyres on each car.  This approach is a paired-difference or matched difference design.  In this case, the data of interest are:
+
+:::{.table-narrow}
+:::{.boxed}
+```{r,echo = FALSE}
+A <- c(10.6,9.8,12.3,9.7,8.8)
+B <- c(10.2,9.4,11.8,9.1,8.3)
+(A-B)%>%
+  kable(col.names = "Difference Between Tyre A and Tyre B", align = "c","pipe")
+```  
+:::
+:::
+
+If $\mu_d$ is the population difference in tyre wear, the hypotheses for testing are:
+$$
+H_0:\mu_d = 0\qquad\mbox{and}\qquad H_A:\mu_d\neq 0
+$$
+with the resulting test statistic
+$$
+t = \frac{\bar{d}-0}{s_d/\sqrt{n}}=\frac{0.48}{0.837/\sqrt{5}}=12.8
+$$
+```{r}
+A <- c(10.6,9.8,12.3,9.7,8.8)
+B <- c(10.2,9.4,11.8,9.1,8.3)
+
+t.out <- t.test(A,B,alternative = "two.sided",mu = 0, paired = TRUE, conf.level = 0.95)
+  pander(t.out)
+```
+assuming a Type I Error Rate of $\alpha = 0.05$ the critical value for $\nu=4$ is $2.776$, therefore because $12.8>2.776$ we would reject the null hypothesis and conclude that there is a difference in the wear for the two types of tyres. 
+
+Note that a similar procedure is used for computing a confidence intervals 
+$$
+\bar{d}\pm t_{\nu,\alpha/2}\frac{s_d}{\sqrt{n}}.
+$$
+
+
+```{r,eval=FALSE}
+A <- c(10.6,9.8,12.3,9.7,8.8)
+B <- c(10.2,9.4,11.8,9.1,8.3)
+
+t.out <- t.test(A,B,alternative = "two.sided",mu = 0, paired = TRUE, conf.level = 0.95)
+t.out$conf.int%>%
+  t()%>%
+  kable(digits = 3,col.names = c("Lower Conf. Int.", "Upper Conf. Int."),align = "c")%>%
+  column_spec(column = 1:2,width = "3.5cm")
+```
+
+:::{.table-narrow}
+:::{.boxed}
+```{r, echo = FALSE}
+A <- c(10.6,9.8,12.3,9.7,8.8)
+B <- c(10.2,9.4,11.8,9.1,8.3)
+
+t.out <- t.test(A,B,alternative = "two.sided",mu = 0, paired = TRUE, conf.level = 0.95)
+t.out$conf.int%>%
+  t()%>%
+  kable(digits = 3,col.names = c("Lower Conf. Int.", "Upper Conf. Int."),align = "c")%>%
+  column_spec(column = 1:2,width = "3.5cm")
+```
+:::
+:::
+
+This example illustrates how simple changes to an experiment and violating assumptions can lead to very misleading results. 
+:::
+
+
+:::{.boxed}
+## Worksheet Practical Question 1
+
+A survey of students at QUT reveals asked them to report how many hours of sleep they had on a given night.
+```{r,echo = FALSE}
+c(6,7.25,7,8.5,5,8,7,6.75,6)%>%
+  kable(col.names = "Hours of Sleep",align = "c","pipe",digits = 2)
+```
+Find a 99\% confidence interval for the average number of hours that students at QUT sleep each night. (use the `t.test()` function in R)
+```{r pq1, exercise = TRUE}
+##  Enter Data
+
+
+```
+
+```{r pq1-hint}
+x<-c(6,7.25,7,8.5,5,8,7,6.75,6)
+
+t.out<-t.test(x, alternative = "two.sided", mu = 0, conf.level = 0.99)
+
+t.out$conf.int%>%
+  t()%>%
+  kable(digits = 3,col.names = c("Lower Conf. Int.", "Upper Conf. Int."),align = "c")%>%
+  column_spec(column = 1:2,width = "3.5cm")
+
+```
+:::
+
+:::{.boxed}
+## Worksheet Practical Question 2
+
+A geologist collected twenty ore samples and randomly divided them into two separate groups.  She then used two different techniques to measure the amount of titanium present in the samples. The data are:
+
+```{r, echo = FALSE}
+x1<-c(0.011,0.013,0.013,0.015,0.014,0.013,0.010,0.013,0.011,0.012)
+x2<-c(0.011,0.016,0.013,0.012,0.015,0.012,0.017,0.013,0.014,0.015)
+
+data.frame(x1,x2)%>%
+  kable(col.names = c("Technique 1", "Technique 2"), align = "c","pipe")
+
+```
+Are these two methods of taking measurements equivalent?  Assume a Type I Error Rate of $\alpha = 0.02$.  Now multiply the measurements by 1000, do you expect your test results to be any different?  Repeat your test and compare the results. 
+
+
+```{r pq2, exercise = TRUE}
+
+
+```
+
+
+```{r pq2-hint}
+x1<-c(0.011,0.013,0.013,0.015,0.014,0.013,0.010,0.013,0.011,0.012)
+x2<-c(0.011,0.016,0.013,0.012,0.015,0.012,0.017,0.013,0.014,0.015)
+
+t.test(x1,x2,alternative = "two.sided",mu = 0, conf.level = 0.98)%>%
+  pander()
+
+t.test(1000*x1,1000*x2,alternative = "two.sided", mu = 0, conf.level = 0.98)%>%
+  pander()
+
+```
+:::
+
+:::{.boxed}
+## Worksheet Practical Question 3
+
+In order to compare two different fabric dyes, test cloths are divided in two sections and each section is treated with one of two dyes.  After treatment each section is assigned a "brightness" score.  Assume a higher score corresponds two a more intense colouring.  Is there evidence to suggest that Dye A is brighter than Dye B?  Assume a Type I Error Rate of $\alpha = 0.01$.
+
+
+:::{.table-narrow}
+```{r, echo = FALSE}
+df <- tibble('Dye A' = c(10,12,9,8,15,12,9,10,15),
+             'Dye B' = c(8,11,10,6,12,13,9,8,13))
+kable(df)%>% column_spec(column = 1:2,width = "2cm")
+```
+:::
+
+
+```{r pq3, exercise = TRUE}
+
+
+```
+
+
+```{r pq3-hint}
+x1 <- c(10,12,9,8,15,12,9,10,15) ## Dye A
+x2 <- c(8,11,10,6,12,13,9,8,13)  ## Dye B
+
+##  Null Hypothesis that A<=B, or A-B<=0
+
+xd<-x1-x2
+
+t.test(xd,alternative = "greater", mu = 0, conf.level = 0.99)%>%
+  pander()
+
+```
+:::
+
+:::{.boxed}
+
+##    Additional Questions for Practice
+
+1.    Consider the data on weights (in grams) in of packages of mince, test the hypothesis that the average weight of a package of mince weighs 500g, assume a Type I Error Rate of $\alpha = 0.01$.  Compute a 95\% confidence interval for the average weight of a package of mince.
+
+```{r, echo = FALSE}
+x <- c(1.08,0.99,0.97,1.18,1.41,1.28,0.83,1.06,1.14,1.38,0.75,0.96,1.08,0.87,0.89,0.89,0.96,1.12,1.12,0.93,1.24,0.89,1.14,0.92,1.18,1.17)
+
+x<-x*454
+
+kable(x,col.names = "Weight (g)")
+```
+
+```{r aq1, exercise = TRUE}
+
+
+
+```
+
+```{r aq1-solution}
+x <- c(490.32, 449.46, 440.38, 535.72, 640.14, 581.12, 376.82, 481.24, 517.56, 626.52, 340.50, 435.84,490.32, 394.98, 404.06, 404.06, 435.84, 508.48, 508.48, 422.22, 562.96, 404.06, 517.56, 417.68, 535.72, 531.18)
+
+t.out<-t.test(x,alternative = "two.sided", mu = 500, conf.level = 0.99)
+
+pander(t.out)
+
+t.out<-t.test(x,alternative = "two.sided", mu = 500, conf.level = 0.95)
+
+t.out$conf.int%>%
+  t()%>%
+  kable(digits = 3,col.names = c("Lower Conf. Int.", "Upper Conf. Int."),align = "c")%>%
+  column_spec(column = 1:2,width = "3.5cm")
+
+```
+2.    I purchased several boxes of both name brand and store brand raisins (snack size) and want to know if the savings of purchasing store brand raisins was truly economical (assume that I can't differentiate between the taste or quality of raisins).  I carefully counted the number of raisins in each box. Is there a difference between the average number of raisins per box between store brand and name brand raisins?
+```{r, echo = FALSE}
+x1 <- c(25,26,25,28,26,28,28,27,26,27,24,25,26,26)
+x2 <- c(25,29,24,24,28,24,28,22,25,28,30,27,28,24)
+
+data.frame(x1,x2)%>%
+  kable(col.names = c("Store Brand", "Name Brand"), align = "c")
+
+
+```
+
+```{r aq2, exercise = TRUE}
+
+
+```
+
+```{r aq2-solution}
+x1 <- c(25,26,25,28,26,28,28,27,26,27,24,25,26,26) ## Store Brand
+x2 <- c(25,29,24,24,28,24,28,22,25,28,30,27,28,24) ## Name Brand
+
+t.test(x1,x2,alternative = "two.sided", mu = 0, conf.level = 0.95)%>%
+  pander()
+
+```
+**BONUS** What if I care about consistency of size of raisins, the boxes are filled by weight, and I can just use the data I have. What statistic would I want to compare to determine which brand has more consistent raisin sizes?
+
+**BONUS** What is the difference between a raisin and currant?  Which is used to make *kvass*?
+
+
+3.    A Kaizen manager is interested in seeing if a new training program can reduce lost-time incidents at her company's different plants. She collects data on lost time incidents at 6 randomly selected plants before and after the training program is implemented.  Is there evidence to indicate that the training program was successful?
+```{r, echo = FALSE}
+x1 <- c(38,64,42,70,58,30) ## Before
+x2 <- c(31,58,43,65,52,29) ## After
+
+data.frame(x1,x2)%>%
+  kable(col.names = c("Before","After"),align = "c")
+
+```
+
+```{r aq3, exercise = TRUE}
+
+
+
+```
+
+```{r aq3-solution}
+x1 <- c(38,64,42,70,58,30) ## Before
+x2 <- c(31,58,43,65,52,29) ## After
+
+##  Null Hypothesis is that Before<=After, or Before-After <= 0
+
+xd <- x1-x2
+
+t.test(xd, alternative = "greater", mu = 0, conf.level = 0.95)%>%
+  pander()
+```
+:::
+
+```{r,echo=FALSE}
+htmltools::includeHTML("footer.html")
+```

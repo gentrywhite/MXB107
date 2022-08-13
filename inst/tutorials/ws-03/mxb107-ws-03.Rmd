@@ -1,0 +1,506 @@
+---
+title: "MXB107 Worksheet 3 - Bivariate Data"
+output:
+  learnr::tutorial:
+    theme: yeti
+    includes:
+    css: ["./css/QUT.css","./css/QUTtutorial.css"]
+    after_body: footer.html
+  progressive: true
+  allow_skip: true
+runtime: shiny_prerendered
+---
+
+```{r ws-setup, include=FALSE}
+  # if problems with knitting directory:
+  # set Knit Directory = Document Directory
+
+  # install libraries needed for worksheet
+knitr::opts_chunk$set(
+  fig.align = 'center',
+  collapse = TRUE,
+  comment = "#>"
+)
+
+  library(MXB107)
+  library(learnr)
+
+```
+
+
+```{r, echo = FALSE}
+
+htmltools::includeHTML("header.html")
+
+```
+
+
+
+
+#    Bivariate Data
+
+Multivariate data arises when we collect more than one observations per experimental unit, for example surveys can ask individuals multiple questions, resulting in a multivariate data set. Bivariate data is a special case where we have two measurements per experimental unit (note that bivariate data can be extracted from a larger multivariate data set for the purposes of analyses).  Bivariate data is useful especially when we want to examine the nature of the relationship between two variables.  Bivariate data can be categorical, numerical, or some combination of the three. This week we will look at means of summarising categorical data to explore relationships between the two variables. 
+
+## Bivariate Categorical Data
+
+Bivariate cetegorical data occurs when we have two observations of an experimental unit that are both categorical variables.  These can be summarised easily and compactly in tables, which can provide an easy to read and reference that numerically sumarises the data, but also provides some structure to indicate the relationship between the variables. 
+
+### Tables
+
+Tabular representations of bivariate data are constructed by assigning rows and columns to each of the categories for the two variables, the cells of the table then contain the counts (or sometimes proportions) of individuals who are in both categories.  These kind of tables are often called contignecy tables and are common tools of data analysis. In <tt>R</tt> the command <tt>table()</tt> 
+
+The is also a function in the <tt>knitr</tt> package (which is used to create this document called) <tt>kable</tt> that can be used to create tables in a variety of formats, including HTML, which can look nicer in your <tt>Rmd</tt> documents.  Use the `episodes` data and create a table showing how many shows of each series pass or fail the Bechdel-Wallace Test.
+
+:::{.boxed}
+**Hint:** The `kable` package can be used to create tables. You will need to use `group_by()`, `count()` and `pivot_wider()` in addition to `kable()` to create a nice HTML table.
+:::
+<p style="font-size:5px">&nbsp;</p>
+
+```{r q1,exercise = TRUE, echo=TRUE, results='asis'}
+data("episodes")
+
+```
+
+```{r q1-solution}
+  episodes%>%
+    group_by(Series.Name,Bechdel.Wallace.Test)%>%
+    count(Series.Name, Bechdel.Wallace.Test)%>%
+    pivot_wider(names_from = Series.Name, values_from = n)%>%
+    kable()
+```
+
+Note that the frequencies can be deceiving because series have different numbers of episodes.  Instead it is more useful to create tables of proportions.  Update the table above to show the proportions rather than counts. 
+
+:::{.boxed}
+**Hint:** The process for creating this table is similar to the table of counts, except in this case we will use `mutate()` to create a new variable called `prop` for the proportions.
+The `digits` argument in `kable()` controls the significant digits displayed.
+:::
+<p style = "font-size:5px">&nbsp;</p>
+
+```{r q2, exercise = TRUE, results='asis'}
+data("episodes")
+
+```
+
+```{r q2-solution}
+ episodes%>%
+    count(Series.Name, Bechdel.Wallace.Test)%>%
+    group_by(Series.Name)%>%
+    mutate(prop = n/sum(n))%>%
+    select(-n)%>%
+    pivot_wider(names_from = Series.Name, values_from = prop)%>%
+    kable(digits = 2)
+```
+
+###   Graphical Summaries
+
+These proportions and counts can visualised in a single plot as well. Use the `episodes` data to create a bar plot to display the counts of episodes that pass and fail the Bechdel-Wallac Test for each series.  
+
+:::{.boxed}
+**Hint:** We will use `ggplot()` to create plots like we did in Workshop 1 but we will need to add the `dodge` option in `geom_bar()` to compare results for each series side-by-side. 
+:::
+<p style = "font-size=5px">&nbsp;</p>
+
+```{r q3, exercise = TRUE}
+data("episodes")
+
+```
+
+```{r q3-solution}
+ggplot(episodes,aes(x = Series.Name,fill = Bechdel.Wallace.Test))+
+  geom_bar(stat = "count",position = "dodge")+
+  xlab("Series")+
+  ylab("Number of episodes")+
+  ggtitle("Star Trek episodes by Series that Pass or Fail the Bechdel-Wallace Test")+
+  theme(plot.title = element_text(hjust = 0.5),legend.position = "bottom")
+```
+
+Notice that this plot is actually a little "busy" and it is difficult to see the differences across the series.  Update the plot above as a "stacked" bar plot.
+
+:::{.boxed}
+**Hint:** eliminating the `dodge` option creates a "stacked" plot.
+:::
+<p style = "font-size:5px">:nbsp&</p>
+
+```{r q4, exercise = TRUE}
+data("episodes")
+```
+
+```{r q4-solution}
+ggplot(episodes,aes(x = Series.Name,fill = Bechdel.Wallace.Test))+
+  geom_bar(stat = "count")+
+  xlab("Series")+
+  ylab("Number of episodes")+
+  ggtitle("Star Trek episodes by Series that Pass or Fail the Bechdel-Wallace Test")+
+  theme(plot.title = element_text(hjust = 0.5),legend.position = "bottom")
+```
+
+##    Bivariate Combined Data Types
+
+Combined bivariate data includes both numeric and categorical data, these can be very common datasets to find, and arise from looking at how different factors influence some numerical measurements.  
+
+###   Summary Tables
+As in the case of purely categorical data, tables can be useful for numerically summarising results. Use the `episodes` data to create a table showing the average IMDB ranking for each series.
+
+:::{.boxed}
+**Hint:** Use `summarise()` to compute the mean IMDB ranking by series.
+:::
+<p style = "font-size:5px">:nbsp;</p>
+
+```{r q5,exercise=TRUE, results='asis', message=FALSE}
+data("episodes")
+
+```
+```{r q5-solution}
+  episodes%>%
+  group_by(Bechdel.Wallace.Test)%>%
+  summarise(mean_imdb = mean(IMDB.Ranking))%>%
+  kable()
+```
+
+But numerical summaries like the mean or median give limited information, so often time graphical summaries can tell us more.
+
+###   Graphical Summaries
+As we have seen previously, side-by-side graphical depictions like historgrams or boxplots can be very useful for illustrating differences between data sets. Use teh `episodes` data to create a side-by-side histograms comparing the IMDB rankings for episodes that pass or fail the  Bechdel-Wallace Test. 
+
+:::{.boxed}
+**Hint:** Use `facet_wrap()` to create side-by-side plots.
+:::
+<p style = "font-size:5px>&nbsp;</p>
+
+```{r q6, exercise = TRUE,message = FALSE}
+library(MXB107)
+data("episodes")
+```
+```{r q6-solution}
+ggplot(episodes,aes(IMDB.Ranking))+
+  geom_histogram(aes(y=..density..),binwidth = 0.5)+
+  facet_wrap(vars(Bechdel.Wallace.Test))+
+  ylab("Density")+
+  xlab("IMDB User Ratings")+
+  ggtitle("IMDB User Ratings for Star Trek episodes\n for Passing and Failing the Bechdel-Wallace Test")+
+  theme(plot.title = element_text(hjust=0.5))
+```
+
+<!---
+# ```{r q7, exercise=TRUE}
+# data(episodes)
+# 
+# ```
+# <div id = "q7-hint">
+# **Hint:** Use `ggplot()` and `geom_boxplot()` with `facet_wrap()` to create side-by-side boxplots.
+# <pre><code>
+# ggplot(episodes,aes(y=IMDB.Ranking))+
+#   geom_boxplot()+
+#   facet_wrap(vars(Bechdel.Wallace.Test))+
+#   ylab("IMDB User Rating")+
+#   ggtitle("IMDB User Ratings for Star Trek episodes\n for Passing and Failing the Bechdel-Wallace Test")+
+#   theme(plot.title = element_text(hjust=0.5),
+#         axis.title.x=element_blank(),
+#         axis.text.x=element_blank(),
+#         axis.ticks.x=element_blank())
+# </code></pre></div>
+-->
+
+##    Continuous Bivariate Data
+
+When we have two continuous variables in a bivariate data set different summaries are needed.
+
+###   Covariance and Correlation
+If variance is defined as 
+$$
+s_x=\frac{\sum_{i=1}^n(x_i-\bar{x})^2}{n-1}
+$$
+or the "mean" of the squared distance between observations then it follows that covariace is defined as 
+$$
+s_{xy} = \frac{\sum_{i=1}^n(x_i-\bar{x})(y_i-\bar{y})}{n-1}
+$$
+Note that if $y=x$ then $s_{xy}=s^2_x$. 
+
+The covariance is often difficult to interpret, so instead the **correlation** is used instead
+$$
+r=\frac{s_{xy}}{s_xs_y}.
+$$
+The correlation $r$ is the covariance divided by the product of the two standard deviations, and is scaled to the range $(-1,1)$. Using the `epa_data` compute the correlation between displacement (`disp`) and EPA city (`city`) and highway (`hwy`) fuel economy. 
+
+::{.boxed}
+**Hint:** Use `summarise()` and `cov()` to find the covariances.
+:::
+<p style = "font-size:5px">&nbsp;</p>
+
+```{r q8,exercise=TRUE,message=FALSE,warning=FALSE}
+library(MXB107)
+data(epa_data)
+
+```
+
+```{r q8-solution}
+summarise(epa_data,cov(disp,cityy,use = "complete.obs"))
+summarise(epa_data,cov(disp,hwy,use = "complete.obs"))
+```
+
+###   Grapical Summaries
+
+A scatter plot or a plot of the two variables one on each axis can be useful for exploring the relationship between two variables. Using the `epa_data` create a scatter plot of engine displacement (`disp`) versus city fuel economy (`city`).
+
+:::{.boxed}
+**Hint:** Use `ggplot()` and `geom_point()` to create the scatter plot.
+:::
+<p style="font-size:5px">&nbsp;</p>
+
+```{r q9,exercise=TRUE,warning=FALSE,message=FALSE}
+data(epa_data)
+
+
+```
+```{r q9-solution}
+ ggplot(epa_data,aes(x=disp,y=city))+
+          geom_point()+
+   xlab("Engine Displacement (l)")+
+   ylab("City Fuel Economy (mpg)")+
+   ggtitle("Displacement versus City Fuel Economy 1984-2021")+
+   theme(plot.title = element_text(hjust=0.5))
+```
+
+We can also fit the least-squares line of the form 
+$$
+y = a+bx
+$$
+Where $a$ and $b$ are the solution to the minimisation problem
+$$  
+\min_{a,b}\sum_{i=1}^n(y_i-a-bx_i)^2
+$$  
+Many, many, many, software packages can solve this problem directly by a variety of means, and the derivation of these solutions is shown in the videos, but in short the solutions are
+$$
+\hat{b}=r\frac{s_y}{s_x}=\frac{s_{xy}}{s^2_x}
+$$
+and
+$$
+\hat{a}=\bar{y}-\hat{b}\bar{x}.
+$$
+The derivation of these solutions is not necessary but your should be aware of it.  The intepretations of the values for $a$ and $b$ are also important.  $a$ is the zero-intercept, or the value of $y$ when $x=0$.  $b$ is the slope or the change in $y$ per unit change in $x$. Often times $x=0$ makes no sense, as in this case because an engine with 0 displacement is meaningless, in these cases, sometimes the data are centered so that $x^*_i=x_i-\bar{x}$ in this cases the inteprtation of the slope is the same, but now the value $a$ refers to the value of $y$ when $x=\bar{x}$, which is often times much more useful. 
+
+The least-squares line can easily be added to a scatterplot in <tt>ggplot()</tt> using the <tt>geom_smooth()</tt> geometry. Use the `epa_data` to create a scatter plot of engine displacement (`disp`) versus city fuel economy (`city`) with a least-squares best fit line.
+
+:::{.boxed}
+**Hint:** Use `geom_smooth()` to add the least-squares line.
+:::
+
+<p style = "font-size:5px">&nbsp;</p>
+
+```{r q10, exercise = TRUE}
+data(epa_data)
+
+```
+```{r q10-solution}
+ ggplot(epa_data,aes(x=disp,y=city))+
+   geom_point()+
+   geom_smooth(method = "lm")+
+   xlab("Engine Displacement (l)")+
+   ylab("City Fuel Economy (mpg)")+
+   ggtitle("Displacement versus City Fuel Economy 1984-2021")+
+   theme(plot.title = element_text(hjust=0.5))
+```  
+
+
+##    Workshop Practical Questions 
+
+###  Categorical Data
+
+In the workshop examples we saw that there was a difference between Star Trek series and the proportions of episodes that passed or failed the Bechdel-Wallace Test. The data also includes several variables indicating whether or not producers or directors were Female. Construct a table to explore the relationship between Female Directors and the Bechdel-Wallace Test results. 
+
+```{r pq1, exercise = TRUE, include = FALSE,message=FALSE}
+data(episodes)
+
+```
+```{r pq1-solution}
+
+episodes%>%
+  count(Female.Director,Bechdel.Wallace.Test)%>%
+  group_by(Bechdel.Wallace.Test)%>%
+  pivot_wider(names_from = Female.Director,values_from = n)%>%
+  kable()
+```
+
+Now construct the same table but now compare the proportions
+```{r pq2, exercise = TRUE, include = FALSE,message=FALSE}
+data(episodes)
+
+```
+
+
+```{r pq2-solution}
+episodes%>%
+  count(Female.Director,Bechdel.Wallace.Test)%>%
+  group_by(Bechdel.Wallace.Test)%>%
+  mutate(prop = n/sum(n))%>%
+  select(-n)%>%
+  pivot_wider(names_from = Female.Director,values_from = prop)%>%
+  kable(digits = 2)
+
+
+```
+
+Now, take the same data and construct a stacked bar chart
+```{r pq3,exercise = TRUE,include=FALSE,message=FALSE}
+data(episodes)
+
+```
+
+```{r pq3-solution}
+ggplot(episodes,aes(x = Female.Director,fill = Bechdel.Wallace.Test))+
+  geom_bar(stat = "count")+
+  xlab("Female Director")+
+  ylab("Number of episodes")+
+  ggtitle("Star Trek episodes by Female Director that Pass or Fail the Bechdel-Wallace Test")+
+  theme(plot.title = element_text(hjust = 0.5),legend.position = "bottom")
+
+```
+
+
+###    Combined Data
+
+In the workshop we saw an example that where it appeared that episodes of Star Trek that failed the Bechdel-Wallace test scored higher on the IMDB rankings.  This could be due to several factors, including unequal numbers of episodes per series, the fact that IMDB rankings are based on users rankings, i.e.\ people who want to rank shows, rank shows and may be biased or not representative of all viewers, or other factors. 
+Repeat the exercise to create the table for each series and compare the results. 
+
+:::{.boxed}
+**Hint:** Use the `filter()` function to select by series, or see the example using `pivot_wider()`.
+:::
+<p style = "font-size:5px">&nbsp;</p>
+
+```{r ex2_1, exercise = TRUE,message=FALSE}
+data(episodes)
+```
+
+```{r ex2_1-solution,message=FALSE}
+episodes%>%
+     group_by(Series.Name,Bechdel.Wallace.Test)%>%
+     summarise(mean_imdb = mean(IMDB.Ranking))%>%
+     pivot_wider(names_from=Series.Name,values_from = mean_imdb)%>%
+    kable(digits = 2)
+```
+
+Create a table of the mean IMDB ranking for Female.Associate.Producer (this is a T/F variable). Compare this to the same table but using Female.Executive.Producer.
+
+:::{.boxed}
+**Hint:** See the examples using `group_by()` and `summarise()`. 
+:::
+<p style = "font-size:5px">&nbsp;</p>
+
+```{r ex2_2, exercise = TRUE,message=FALSE}
+data(episodes)
+
+```
+
+
+```{r ex2_2-solution}
+episodes%>%
+     group_by(Female.Associate.Producer,Bechdel.Wallace.Test)%>%
+     summarise(mean_imdb = mean(IMDB.Ranking))%>%
+     pivot_wider(names_from=Female.Associate.Producer,values_from = mean_imdb)%>%
+    kable(digits = 2)
+```
+
+Repeat the previous exercise, but now construct boxplots.
+
+::{.boxed}
+**Hint:** See the example using `facet_wrap()`.
+:::
+<p style = "font-size:5px">&nbsp;</p>
+
+```{r ex2_3, exercise = TRUE,message=FALSE}
+data(episodes)
+
+
+```
+
+
+```{r ex2_3-solution,include = FALSE}
+ggplot(episodes,aes(y=IMDB.Ranking))+
+  geom_boxplot()+
+  facet_wrap(vars(Female.Associate.Producer))+
+  ylab("IMDB User Rating")+
+  ggtitle("IMDB User Ratings for Star Trek episodes\n with a Female Associate Producer")+
+  theme(plot.title = element_text(hjust=0.5),
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+
+```
+
+###    Continuous Bivariate Data
+
+Continuous bivariate data aren't conducive to creating tables, instead other numerical summaries like covariance and correlation are needed. 
+
+The covairance is defined as 
+$$
+s_{xy} = \frac{\sum_{i=1}^n(x_i-\bar{x})(y_i-\bar{y})}{n-1}.
+$$
+The scale for the covariance can make it difficult to interpret, instead the correlation which is scaled between $(-1,1)$ is much easier to understand
+$$
+r=\frac{s_{xy}}{s_xs_y}.
+$$
+For the exercises looking at bivariate continuopus cases we will again use the `epa_data`. Use the <tt>R></tt> functions `cov` and `cor` to compute the correlation between engine displacement (`disp`) and city driving fuel economy (`city`).  How does this compare with the correlation between displacement and highway driving fuel economy (`hwy`)?
+
+:::{.boxed}
+**Hint:** Remember the option `use = "complete.obs"`.
+:::
+<p style = "font-size:5px">&nbsp;</p>
+
+```{r ex3_1, exercise = TRUE,message = FALSE, warning = FALSE}
+data(epa_data)
+```
+
+```{r ex3_1-solution}
+epa_data%>%
+  select(disp,hwy)%>%
+  cov(use = "complete.obs")
+epa_data%>%
+  select(disp,hwy)%>%
+  cor(use = "complete.obs")
+```
+
+
+Now plot the displacement versus the city driving fuel economy in a scatter plot, make sure you add a title or any other labels needed to make the plot easily readable.
+
+:::{.boxed}
+**Hint:** See the example from the workshop.
+:::
+
+<p style = "font-size:5px">&nbsp;</p>
+
+```{r ex3_2,exercise = TRUE,message=FALSE}
+data(epa_data)
+```
+
+```{r ex3_2-solution}
+ggplot(epa_data,aes(x = disp,y = city))+
+  geom_point()
+```
+
+
+Now repeat that plot but add the least-squares best fit line, make sure you add a title or any other labels needed to make the plot easily readable.
+
+:::{.boxed}
+**Hint:** See the example from the workshop.
+:::
+
+<p style = "font-size:5px">&nbsp;</p>
+
+
+```{r ex3_3, exercise = TRUE,message=FALSE}
+data(epa_data)
+```
+
+```{r ex3_3-solution}
+ggplot(epa_data,aes(x = disp,y = city))+
+  geom_point()+
+  geom_smooth(method = "lm")
+```
+
+
+```{r,echo=FALSE}
+htmltools::includeHTML("footer.html")
+```
+

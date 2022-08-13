@@ -1,0 +1,386 @@
+---
+title: "MXB107 Worksheet 2 - Numerical Data Summaries"
+output:
+  learnr::tutorial:
+    theme: yeti
+    includes:
+    css: ["./css/QUT.css","./css/QUTtutorial.css"]
+    after_body: footer.html
+  progressive: true
+  allow_skip: true
+runtime: shiny_prerendered
+---
+
+```{r ws-setup, include=FALSE}
+  # if problems with knitting directory:
+  # set Knit Directory = Document Directory
+
+  # install libraries needed for worksheet
+knitr::opts_chunk$set(
+  fig.align = 'center',
+  collapse = TRUE,
+  comment = "#>"
+)
+
+  library(MXB107)
+  library(learnr)
+
+```
+
+```{r, echo = FALSE}
+
+htmltools::includeHTML("header.html")
+
+```
+
+
+#    Numerical Summaries of Data
+
+Graphical summaries of data can be useful for visualising the characteristics of data. Still, to be more precise, we need numerical measures for describing data and for discussing differences between sets of data. 
+
+## Measures of Centrality
+
+### Computing the Mean 
+
+:::{.boxed}
+
+The arithmetic mean is simply the sum of the observed values divided by the number of values.  In `R` this can be done using the function `mean()`.
+```{r q0, exercise = TRUE}
+?mean
+```
+:::
+
+:::{.boxed}
+Now use the mean function to find the mean of `x`
+```{r q1, exercise = TRUE}
+x<-c(6.8, 3.4, 4.2, 3.7, 1.5, 6.0, 4.1, 1.8, 5.2)
+
+```
+
+:::
+
+###   Computing the median
+
+:::{.boxed}
+The median is the "middle" value in a list of sorted values, in `R` the function `median()` finds this value directly.
+
+Now "manually" find the median for `x` and use the `median()` function. Compare your answers.
+
+```{r q2, exercise = TRUE}
+##  For an odd number of values
+
+x<-c(17, 14, 12, 15, 24, 19, 23, 9, 22, 18, 17, 19, 14, 22, 13)
+
+##  For an even number
+
+x<-c(8,9,14,13,13,11,9,13,15,10)
+
+```
+
+:::
+
+### Computing the mode
+
+:::{.boxed}
+There is no explicit command in `R` to compute the mode, so instead use the pipe operator `%>%` and the commands `count()<` and `top_n()` to find the mode.
+<br>
+
+:::{.boxed}
+**Hint:**\
+Pipe `count()`, then `top_n()`. 
+:::
+
+<br>
+<p style="font-size:5px">&thinsp;</p>
+```{r q3, exercise = TRUE}
+x<-c(2,5,6,1,6,2,6,1,2,6,4,4,4,6,5)
+
+```
+
+```{r q3-solution}
+
+x<-tibble(x=x)
+x%>%
+  count(x)%>%
+  top_n(1)
+```
+:::
+
+##    Measures of Dispersion
+
+###   Computing the range
+
+:::{.boxed}
+The range is the differnence between the largest and smallest observation in a set of data.  `R` doesn't explicitly return this difference, the function `range()` returns the pair of the largest and smallest observation.  
+
+:::{.boxed}
+**Hint:**\
+Using the pipe `%>%` operator and the function `diff()` the range can be easily computed.
+:::
+<p style="font-size:5px">&nbsp;</p>
+```{r q4, exercise = TRUE}
+x<-c(17, 14, 12, 15, 24, 19, 23, 9, 22, 18, 17, 19, 14, 22, 13)
+
+```
+
+```{r q4-solution}
+range(x)
+range(x)%>%diff()
+```
+:::
+
+###   Variance and standard deviation
+Given a set of observations:
+$$
+x_1,x_2,\ldots,x_N
+$$
+from a population of size $N$ with mean $\mu$,
+the population variance is
+$$
+\sigma^2 = \frac{\sum_{i=1}^N(x_i-\mu)^2}{N}.
+$$
+Given a sample of observations of size, $n$ with sample mean $\bar{x}$
+$$
+x_1,x_2,\ldots,x_n
+$$
+the sample variance is
+$$
+s^2 = \frac{\sum_{i=1}^n(x_i-\bar{x})^2}{n-1}
+$$
+
+:::{.boxed}
+The functions `var()` and `sd()` in `R` compute the variance and standard deviation, read the documentation on these functions and determine if they calculate the variance and standard deviation for a population or for a sample?
+:::
+
+:::{.boxed}
+Compute the variance and standard deviation for the following data using the `var()` and `sd()` functions.
+
+```{r q5, exercise= TRUE}
+x<-c(17, 14, 12, 15, 24, 19, 23, 9, 22, 18, 17, 19, 14, 22, 13)
+```
+
+```{r q5-solution}
+x<-c(17, 14, 12, 15, 24, 19, 23, 9, 22, 18, 17, 19, 14, 22, 13)
+
+var(x)
+
+sd(x)
+
+```
+:::
+
+##    Interpreting Chebyeshev, The Empirical Rule, and estimating the standard deviations from the range.
+
+:::{.boxed}
+**Example:**\
+Estimate the coverage for Chebeyshev's Theorem for $k=2$, compare this with the Empirical Rule coverage, and compare the standard deviation with the standard deviation estimated from the range.
+
+:::{.boxed}
+**Hint:**\
+Chebyshev's Theorem states that at least 75% of observations will fall within 2
+standard deviations of the mean.
+:::
+<p style = "font-size:5px">&nbsp;</p>
+```{r q6, exercise = TRUE}
+x<-c(17, 14, 12, 15, 24, 19, 23, 9, 22, 18, 17, 19, 14, 22, 13)
+```
+
+```{r q6-solution}
+
+##  Compute the sample mean
+
+x_bar<-mean(x)
+
+##  Compute the standard deviation
+
+s<-sd(x)
+
+##  Compute the coverage under Chebyshev's Theorem
+
+x_bar-2*s
+
+x_bar+2*s
+
+##  Estimate the standard deviation from the range
+
+r<-range(x)%>%diff()
+
+s_hat<-r/4
+```
+:::
+
+How does the estimate of the standard deviation from the range compare with the value calculated using the defintion of variance?\
+
+How reasonable or useful is Chebyshev's Theorem, how does it compare to the Empirical Rule?
+
+##    Quantiles and Boxplots
+
+Quantiles or percentiles are computed based on ordered data; the $n$th percentile or quantile is the value such that $n\%$ of the observations are less than the $n$th percentile.  The median is defined as the $50%th percentile.  Other quantiles can be useful in summarising data. The interquartile range, or the difference between the $25$th and $75$th percentiles, is often used as a measure of dispersion. The $2.5$th and $97.5$th percentiles bound $95\%$ of the data and define outliers as any observations falling outside those bounds.
+
+:::{.boxed}
+**Example:**\
+Compute the 75th, 5th and 95th quantiles for the following data
+
+:::{.boxed}
+**Hint:**\
+In `R` the functions `quantile()` calculates quantiles.
+:::
+<p style="font-size:5px">&nbsp;</p>
+
+```{r q7, exercise = TRUE}
+x<-c(15.91, 16.63, 6.06, 13.62, 15.11, 16.86, 13.47, 12.47, 16.88, 21.81, 23.87,11.12, 17.59, 27.26, 24.97, 15.90, 17.82, 17.29, 23.99, 17.91)
+```
+
+```{r q7-solution}
+##  Compute the 75th, 5th and 95th quantiles
+
+quantile(x,probs = c(0.75,0.05,0.95))
+
+##  Compute the Inter-quartile range (IQR)
+
+quantile(x,probs = c(0.25,0.75))%>%diff()
+```
+:::
+
+## Creating a boxplot with `ggplot()`
+
+The boxplot is a graphical depiction of the quantiles. A box bounds the inter-quartile range and is bisected by a line at the mean.  Two lines (sometimes called "whiskers" extend from the box, indicating the range from the $2.5$th to the $97.5$th percentile.  Any observations beyond these bounds are indicated as a point or dot.
+
+:::{.boxed}
+**Example:**\
+Create a boxplot of the given data.
+
+:::{.boxed}
+**Hint:**\
+`ggplot()` offers  `geom_boxplot()` for creating boxplots easily. You will need to create a `tibble` first to use `ggplot()`.
+:::
+<p style="font-size:5px">&nbsp;</p>
+```{r q8, exercise = TRUE}
+x<-c(15.91, 16.63, 6.06, 13.62, 15.11, 16.86, 13.47, 12.47, 16.88, 21.81, 23.87,11.12, 17.59, 27.26, 24.97, 15.90, 17.82, 17.29, 23.99, 17.91)
+```
+
+```{r q8-solution}
+x<-tibble(x=x)
+  ggplot(x,aes(y=x))+
+    geom_boxplot()
+```
+:::
+
+##    Workshop Practical Questions
+
+:::{.boxed}
+
+### Question 1
+
+What is the mean and median city fuel economy for cars in the `epa_data` set?  What is the mean, median, and mode for engine displacement?
+
+```{r pqsetup, echo=FALSE,message=FALSE,warning=FALSE}
+library(MXB107)
+```
+
+:::{.boxed}
+**Hint:**\
+Use the `summarise()` function.
+:::
+<p style="font-size:5px">&nbsp;</p>
+```{r pq1, exercise = TRUE, exercise.setup = "pqsetup"}
+data("epa_data")
+
+```
+
+```{r pq1-solution}
+summarise(epa_data,mean(city))
+summarise(epa_data,median(city))
+summarise(epa_data,mean(disp))
+summarise(epa_data,median(disp))
+summarise(epa_data,n(disp))%>%top_n(1)
+```
+:::
+
+:::{.boxed}
+
+###   Question 2
+
+Compare the variance and standard deviation for EPA City and Highway Mileage, use Chebyshev's Theorem and the Empirical Rule to interpret the results.
+
+:::{.boxed}
+**Hint:** Chebyshev's Theorem and the Empirical Rule are complimentary. The empirical rule states that if the data are *approximately Gaussian* then
+95% of observations should be within mean +/- 2 standard deviations.
+
+
+Chebyshev's Theorem is more conservative and says that regardless of the shape of the distribution
+*at least* 75% of the observations should be within mean +/- 2 standard deviation.
+We can also approximate the standard deviation as range/4.
+:::
+<p style="font-size:5px">&nbsp;</p>
+```{r pq2, exercise = TRUE, exercise.setup = "pqsetup"}
+data("epa_data")
+
+
+
+```
+
+```{r pq2-solution}
+mean_city <- summarise(epa_data,mean(city))
+mean_hwy <- summarise(epa_data,mean(hwy))
+summarise(epa_data,var(city))
+summarise(epa_data,var(hwy))
+sd_city <- summarise(epa_data,sd(city))
+sd_hwy <- summarise(epa_data,sd(hwy))
+summarise(epa_data,range(city))
+summarise(epa_data,range(hwy))
+```
+:::
+
+
+:::{.boxed}
+
+###   Question 3
+
+Compute the quantiles and IQR for EPA city versus highway mileage in 1990.
+Create side-by-side plots of the box plots for EPA city versus highway mileage in 1990.
+
+:::{.boxed}
+**Hint:** You will need to create a mileage variable indicating either `city` and `hwy` as part of a new tibble.
+:::
+<p style="font-size:5px">&nbsp;</p>
+```{r pq3, exercise = TRUE, exercise.setup = "pqsetup"}
+data("epa_data")
+
+
+
+```
+
+```{r pq3-solution}
+df<-filter(epa_data,year == 1990)
+select(df,city)%>%
+    unlist()%>%
+        quantile()
+select(df,hwy)%>%
+    unlist()%>%
+        quantile()
+
+select(df,city)%>%
+    unlist()%>%
+        quantile(probs = c(0.25,0.75))%>%
+          diff()
+select(df,hwy)%>%
+    unlist()%>%
+        quantile(probs = c(0.25,0.75))%>%
+          diff()
+
+df<-filter(epa_data,year == 1990)%>%
+      select(c(city,hwy))%>%
+      pivot_longer(cols = c(city,hwy))
+
+ggplot(df,aes(y = value))+
+    geom_boxplot()+
+    facet_wrap(~name)
+```
+:::
+
+
+```{r,echo=FALSE}
+htmltools::includeHTML("footer.html")
+```
+
